@@ -12,7 +12,7 @@
 
 ### Download
 
-Download the P2PKit library: [P2PKit AAR](http://p2pkit.io/maven2/ch/uepaa/p2p/p2pkit-android/0.1.4/p2pkit-android-0.1.4.aar) [SHA1](http://p2pkit.io/maven2/ch/uepaa/p2p/p2pkit-android/0.1.4/p2pkit-android-0.1.4.aar.sha1)
+Download the P2PKit library: [P2PKit AAR](http://p2pkit.io/maven2/ch/uepaa/p2p/p2pkit-android/VERSION/p2pkit-android-VERSION.aar) [SHA1](http://p2pkit.io/maven2/ch/uepaa/p2p/p2pkit-android/VERSION/p2pkit-android-VERSION.aar.sha1)
 
 ### Signup
 
