@@ -17,7 +17,17 @@ Download the P2PKit library: [P2PKit AAR](http://p2pkit.io/maven2/ch/uepaa/p2p/p
 Gradle
 
 ```
-FIXME
+repositories {
+  ...
+  maven {
+    url "http://p2pkit.io/maven2"
+  }
+}
+...
+dependencies {
+  ...
+  compile group: 'ch.uepaa.p2p', name: 'p2pkit-android', version: 'VERSION'
+}
 ```
 
 ### Signup
