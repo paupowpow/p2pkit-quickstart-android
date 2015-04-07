@@ -4,7 +4,7 @@
 
 **[Download](#download)**  
 **[Signup](#signup)**  
-**[Setup Xcode project](#setup-xcode-project)**  
+**[Setup Android Studio project](#setup-android-studio-project)**  
 **[Initialization](#initialization)**  
 **[P2P Discovery](#p2p-discovery)**  
 **[GEO Discovery](#geo-discovery)**  
