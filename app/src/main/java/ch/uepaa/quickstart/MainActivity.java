@@ -19,7 +19,7 @@ import ch.uepaa.p2pkit.messaging.MessageServices;
 
 public class MainActivity extends ActionBarActivity {
 
-    private static final String APP_KEY = "<YOUR APP KEY>";
+    private static final String APP_KEY = "Insert your AppKey here";
 
     private TextView logView;
 
@@ -80,11 +80,6 @@ public class MainActivity extends ActionBarActivity {
      * FIXME doc
      */
     private final P2pListener mP2pDiscoveryListener = new P2pListener() {
-
-        @Override
-        public void onStateChanged(int state) {
-            logToView("P2pListener | State changed: " + state);
-        }
 
         @Override
         public void onPeerDiscovered(final UUID nodeId) {
