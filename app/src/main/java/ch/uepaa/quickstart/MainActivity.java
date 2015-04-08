@@ -19,7 +19,7 @@ import ch.uepaa.p2pkit.messaging.MessageServices;
 
 public class MainActivity extends ActionBarActivity {
 
-    private static final String APP_KEY = "your app key";
+    private static final String APP_KEY = "<YOUR APP KEY>";
 
     private TextView logView;
 
@@ -89,6 +89,9 @@ public class MainActivity extends ActionBarActivity {
         @Override
         public void onPeerDiscovered(final UUID nodeId) {
             logToView("P2pListener | Peer discovered: " + nodeId);
+
+            // sending a message to the peer
+            KitClient.getMessageService().sendMessage(nodeId, "SimpleChatMessage", "From Android: Hello P2P!".getBytes());
         }
 
         @Override
@@ -112,7 +115,7 @@ public class MainActivity extends ActionBarActivity {
             logToView("GeoListener | Peer discovered: " + nodeId);
 
             // sending a message to the peer
-            KitClient.getMessageService().sendMessage(nodeId, "myApp/text", ("Hello Peer! I am " + KitClient.getNodeId().toString()).getBytes());
+            KitClient.getMessageService().sendMessage(nodeId, "SimpleChatMessage", "From Android: Hello GEO!".getBytes());
         }
 
         @Override
@@ -129,11 +132,11 @@ public class MainActivity extends ActionBarActivity {
 
         @Override
         public void onMessageReceived(long timestamp, UUID origin, String type, byte[] message) {
-            logToView("MessageListener | Message received: From=" + origin + " type="+type + " message=" + new String(message));
+            logToView("MessageListener | Message received: From=" + origin + " type=" + type + " message=" + new String(message));
         }
     };
 
     private void logToView(String message) {
-        logView.append("\n" + message);
+        logView.setText(message + "\n" + logView.getText());
     }
 }
