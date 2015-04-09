@@ -1,6 +1,6 @@
 # p2pkit.io Quickstart
 
-Rocket science in candy wrap! With just a few lines of code, p2pkit packs a punch enabling you to accurately discover and directly message users nearby - your app becomes hyperlocal!
+Rocket science in candy wrap! With just a few lines of code, p2pkit packs a punch by enabling you to accurately discover and directly message users nearby!
 
 ### Table of Contents
 
