@@ -10,6 +10,7 @@ Rocket science in candy wrap! With just a few lines of code, p2pkit packs a punc
 **[P2P Discovery](#p2p-discovery)**  
 **[GEO Discovery](#geo-discovery)**  
 **[Online Messaging](#online-messaging)**  
+**[Documentation](#documentation)**  
 
 
 ### Signup
@@ -140,3 +141,9 @@ private final MessageListener mMessageListener = new MessageListener() {
     }
 };
 ```
+
+## Documentation
+
+For more details and further information, please refer to the Javadoc documentation:
+
+http://p2pkit.io/javadoc/
