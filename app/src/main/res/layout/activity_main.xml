@@ -5,10 +5,27 @@
     tools:context=".MainActivity">
 
 
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Start"
+        android:id="@+id/startButton"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentLeft="true" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Stop"
+        android:id="@+id/stopButton"
+        android:layout_alignBottom="@+id/startButton"
+        android:layout_alignParentRight="true"/>
+
     <ScrollView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/scrollView">
+        android:id="@+id/scrollView"
+        android:layout_below="@+id/stopButton">
 
         <TextView
             android:layout_width="match_parent"
@@ -20,5 +37,6 @@
             android:id="@+id/textView" />
 
     </ScrollView>
+
 
 </RelativeLayout>

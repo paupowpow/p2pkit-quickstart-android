@@ -2,6 +2,8 @@ package ch.uepaa.quickstart;
 
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 
 import java.util.UUID;
@@ -23,6 +25,8 @@ public class MainActivity extends ActionBarActivity {
 
     private TextView logView;
 
+    private KitClient mP2pClient;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -30,11 +34,28 @@ public class MainActivity extends ActionBarActivity {
 
         logView = (TextView) findViewById(R.id.textView);
 
+        findViewById(R.id.startButton).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startAll();
+            }
+        });
+
+        findViewById(R.id.stopButton).setOnClickListener(new View.OnClickListener() {
+             @Override
+             public void onClick(View view) {
+                 stopAll();
+             }
+         }
+        );
+
+    }
+
+    private void startAll() {
         final int isP2PServicesAvailable = KitClient.isP2PServicesAvailable(this);
         if (isP2PServicesAvailable == ConnectionResult.SUCCESS) {
-
-            //FIXME doc
-            KitClient mP2pClient = new KitClient.Builder(this)
+            logToView("Starting everything");
+            mP2pClient = new KitClient.Builder(this)
                     .addConnectionCallbacks(mConnectionCallbacks)
                     .addApi(KitClient.API.P2P_DISCOVERY)
                     .addApi(KitClient.API.GEO_DISCOVERY)
@@ -46,19 +67,22 @@ public class MainActivity extends ActionBarActivity {
             MessageServices.addListener(mMessageListener);
 
             mP2pClient.connect(APP_KEY);
-
-
         } else {
-            //FIXME doc
+            logToView("Cannot start everything yet");
             ConnectionResultHandling.showAlertDialogForConnectionError(this, isP2PServicesAvailable);
         }
+    }
 
+    private void stopAll() {
+        if (mP2pClient != null) {
+            logToView("Stopping everything");
+            mP2pClient.disconnect();
+        } else {
+            logToView("Nothing to stop");
+        }
     }
 
 
-    /**
-     * FIXME doc
-     */
     private final ConnectionCallbacks mConnectionCallbacks = new ConnectionCallbacks() {
         @Override
         public void onConnected() {
@@ -76,9 +100,6 @@ public class MainActivity extends ActionBarActivity {
         }
     };
 
-    /**
-     * FIXME doc
-     */
     private final P2pListener mP2pDiscoveryListener = new P2pListener() {
         @Override
         public void onPeerDiscovered(final UUID nodeId) {
@@ -95,9 +116,6 @@ public class MainActivity extends ActionBarActivity {
     };
 
 
-    /**
-     * FIXME doc
-     */
     private final GeoListener mGeoDiscoveryListener = new GeoListener() {
         @Override
         public void onStateChanged(int state) {
