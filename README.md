@@ -4,7 +4,7 @@ Rocket science in candy wrap! With just a few lines of code, p2pkit packs a punc
 
 ### Table of Contents
 
-**[Signup](#signup)**
+**[Signup](#signup)**  
 **[Setup Android Studio project](#setup-android-studio-project)**  
 **[Initialization](#initialization)**  
 **[P2P Discovery](#p2p-discovery)**  
