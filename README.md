@@ -1,4 +1,4 @@
-# p2pkit.io Quickstart
+# p2pkit.io (beta) Quickstart
 
 Rocket science in candy wrap! With just a few lines of code, p2pkit packs a punch by enabling you to accurately discover and directly message users nearby!
 
@@ -25,7 +25,7 @@ Request your personal application key: http://p2pkit.io
 
 ### Setup Android Studio project
 
-Include the p2pkit maven repository and p2pkit dependencies in your gradle build files
+Include the p2pkit maven repository and p2pkit (beta) dependencies in your gradle build files
 
 ```
 repositories {
