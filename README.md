@@ -4,6 +4,7 @@ Rocket science in candy wrap! With just a few lines of code, p2pkit packs a punc
 
 ### Table of Contents
 
+**[License](#license)**  
 **[Signup](#signup)**  
 **[Setup Android Studio project](#setup-android-studio-project)**  
 **[Initialization](#initialization)**  
@@ -11,6 +12,11 @@ Rocket science in candy wrap! With just a few lines of code, p2pkit packs a punc
 **[GEO Discovery](#geo-discovery)**  
 **[Online Messaging](#online-messaging)**  
 **[Documentation](#documentation)**  
+
+### License
+
+* By using P2PKit.framework you agree to abide by our License (which is included with P2PKit.framework) and Terms Of Service available at http://www.p2pkit.io/policy.html.
+* Please refer to "Third_party_licenses.txt" included with P2PKit.framework for 3rd party software that P2PKit.framework may be using - You will need to abide by their licenses as well.
 
 
 ### Signup
