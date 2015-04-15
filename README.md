@@ -15,7 +15,7 @@ Rocket science in candy wrap! With just a few lines of code, p2pkit packs a punc
 
 ### Signup
 
-Request your personal application key: http://p2pkit.io
+Request your personal application key: http://p2pkit.io/signup.html
 
 ### Setup Android Studio project
 
