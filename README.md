@@ -78,6 +78,29 @@ private final ConnectionCallbacks mConnectionCallbacks = new ConnectionCallbacks
     }
 };
 ```
+### Discovered Peers
+
+When the KitClient is successfully connected information about discovered peers is available by querying the 'Peers ContentProvider'. This includes data about all currently visible and historically discovered peers 
+
+```java
+  Uri peersContentUri = KitClient.getPeerContentUri();
+  ContentResolver contentResolver = context.getContentResolver();
+
+  Cursor cursor = contentResolver.query(peersContentUri, null, null, null, null);
+
+  int nodeIdColumnIndex = cursor.getColumnIndex(PeersContract.NODE_ID);
+  int lastSeenColumnIndex = cursor.getColumnIndex(PeersContract.LAST_SEEN);
+
+  while (cursor.moveToNext()) {
+    UUID nodeId = UUID.fromString(cursor.getString(nodeIdColumnIndex));
+    long lastSeen = cursor.getLong(lastSeenColumnIndex);
+
+    Log.d("TAG", "Peer: " + nodeId + " was last seen: " + SimpleDateFormat.getInstance().format(new Date(lastSeen)));
+  }
+  cursor.close();
+```
+
+For all available data columns please see the documentation for the 'PeersContract'
 
 ### P2P Discovery
 
