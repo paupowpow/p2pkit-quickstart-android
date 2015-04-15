@@ -4,18 +4,14 @@ Rocket science in candy wrap! With just a few lines of code, p2pkit packs a punc
 
 ### Table of Contents
 
-**[License](#license)**  
 **[Signup](#signup)**  
 **[Setup Android Studio project](#setup-android-studio-project)**  
 **[Initialization](#initialization)**  
 **[P2P Discovery](#p2p-discovery)**  
 **[GEO Discovery](#geo-discovery)**  
 **[Online Messaging](#online-messaging)**  
-**[Documentation](#documentation)**  
-
-### License
-
-* By using P2PKit you agree to abide by our License (which is included with P2PKit) and Terms Of Service available at http://www.p2pkit.io/policy.html.
+**[Documentation](#documentation)** 
+**[License](#license)**
 
 ### Signup
 
@@ -151,3 +147,7 @@ private final MessageListener mMessageListener = new MessageListener() {
 For more details and further information, please refer to the Javadoc documentation:
 
 http://p2pkit.io/javadoc/
+
+### License
+
+* By using P2PKit you agree to abide by our License (which is included with P2PKit) and Terms Of Service available at http://www.p2pkit.io/policy.html.
