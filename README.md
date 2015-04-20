@@ -110,10 +110,6 @@ Implement `P2pListener` to receive P2P discovery events
 ```java
 private final P2pListener mP2pDiscoveryListener = new P2pListener() {
     @Override
-    public void onStateChanged(int state) {
-    }
-
-    @Override
     public void onPeerDiscovered(final UUID nodeId) {
     }
 
