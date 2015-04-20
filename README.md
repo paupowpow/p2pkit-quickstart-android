@@ -11,6 +11,7 @@ p2pkit is an easy to use SDK that bundles together several discovery technologie
 **[P2P Discovery](#p2p-discovery)**  
 **[GEO Discovery](#geo-discovery)**  
 **[Online Messaging](#online-messaging)**  
+**[Content Provider API](#content-provider-api)**  
 **[Documentation](#documentation)**  
 **[p2pkit License](#p2pkit-license)**
 
@@ -79,29 +80,13 @@ private final ConnectionCallbacks mConnectionCallbacks = new ConnectionCallbacks
     }
 };
 ```
-### Discovered Peers
 
-When the KitClient is successfully connected information about discovered peers is available by querying the 'Peers ContentProvider'. This includes data about all currently visible and historically discovered peers 
+## General API remarks
+The SDK has two very simple APIs. One is event based, the other one is an Android Content Provider.
+- The event based API will notify you only when an event happens.
+- The Content Provider provides the current overview of all discovered peers and notifies you when the overview changes.
 
-```java
-  Uri peersContentUri = KitClient.getPeerContentUri();
-  ContentResolver contentResolver = context.getContentResolver();
-
-  Cursor cursor = contentResolver.query(peersContentUri, null, null, null, null);
-
-  int nodeIdColumnIndex = cursor.getColumnIndex(PeersContract.NODE_ID);
-  int lastSeenColumnIndex = cursor.getColumnIndex(PeersContract.LAST_SEEN);
-
-  while (cursor.moveToNext()) {
-    UUID nodeId = UUID.fromString(cursor.getString(nodeIdColumnIndex));
-    long lastSeen = cursor.getLong(lastSeenColumnIndex);
-
-    Log.d("TAG", "Peer: " + nodeId + " was last seen: " + SimpleDateFormat.getInstance().format(new Date(lastSeen)));
-  }
-  cursor.close();
-```
-
-For all available data columns please see the documentation for the 'PeersContract'
+## Event based API
 
 ### P2P Discovery
 
@@ -161,6 +146,30 @@ private final MessageListener mMessageListener = new MessageListener() {
     }
 };
 ```
+
+## Content Provider API
+
+When the KitClient is successfully connected, information about discovered peers is available by querying the 'Peers ContentProvider'. This includes data about all currently visible and historically discovered peers 
+
+```java
+  Uri peersContentUri = KitClient.getPeerContentUri();
+  ContentResolver contentResolver = context.getContentResolver();
+
+  Cursor cursor = contentResolver.query(peersContentUri, null, null, null, null);
+
+  int nodeIdColumnIndex = cursor.getColumnIndex(PeersContract.NODE_ID);
+  int lastSeenColumnIndex = cursor.getColumnIndex(PeersContract.LAST_SEEN);
+
+  while (cursor.moveToNext()) {
+    UUID nodeId = UUID.fromString(cursor.getString(nodeIdColumnIndex));
+    long lastSeen = cursor.getLong(lastSeenColumnIndex);
+
+    Log.d("TAG", "Peer: " + nodeId + " was last seen: " + SimpleDateFormat.getInstance().format(new Date(lastSeen)));
+  }
+  cursor.close();
+```
+
+For all available data columns please see the documentation for the 'PeersContract'
 
 ## Documentation
 
