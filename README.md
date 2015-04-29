@@ -39,7 +39,7 @@ dependencies {
 
 ### Initialization
 
-Initialize the `KitClient` by connecting with your personal application key
+Initialize the `KitClient` by calling `connect()` using your personal application key
 
 ```java
 final int statusCode = KitClient.isP2PServicesAvailable(this);
@@ -77,8 +77,8 @@ private final ConnectionCallbacks mConnectionCallbacks = new ConnectionCallbacks
 };
 ```
 
-Once the `ConnectionCallbacks` is registered with the KitClient instance updates to the connection state will be forwarded to the listener.
-Note that if a listener is registered to an already connected KitClient, `onConnected()` will directly be called.
+Once the `ConnectionCallbacks` are registered with the KitClient instance, updates to the connection state will be forwarded to the listener.
+Note that if a listener is registered to a `KitClient` that's already connected, `onConnected()` will directly be called.
 
 ## API
 An API in considered to be in use if it has one or more listeners registered. If no listeners are registered,
