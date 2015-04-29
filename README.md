@@ -33,33 +33,29 @@ repositories {
 ...
 dependencies {
   ...
-  compile 'ch.uepaa.p2p:p2pkit-android:0.2.1'
+  compile 'ch.uepaa.p2p:p2pkit-android:0.3.1'
 }
 ```
 
 ### Initialization
 
-Initialize the `KitClient` by adding corresponding api / listeners and connect with your personal application key
+Initialize the `KitClient` by connecting with your personal application key
 
 ```java
-final int isP2PServicesAvailable = KitClient.isP2PServicesAvailable(context);
-if (isP2PServicesAvailable == ConnectionResult.SUCCESS) {
+final int statusCode = KitClient.isP2PServicesAvailable(this);
+if (statusCode == ConnectionResult.SUCCESS) {
+    KitClient client = KitClient.getInstance(this);
+    client.registerConnectionCallbacks(mConnectionCallbacks);
 
-    KitClient mP2pClient = new KitClient.Builder(context)
-            .addConnectionCallbacks(mConnectionCallbacks)
-            .addApi(KitClient.API.P2P_DISCOVERY)
-            .addApi(KitClient.API.GEO_DISCOVERY)
-            .addApi(KitClient.API.MESSAGING)
-            .build();
-
-    DiscoveryServices.addListener(mP2pDiscoveryListener);
-    DiscoveryServices.addListener(mGeoDiscoveryListener);
-    MessageServices.addListener(mMessageListener);
-
-    mP2pClient.connect(APP_KEY);
+    if (client.isConnected()) {
+        Log.d(TAG, "Client already initialized");
+    } else {
+        Log.d(TAG, "Connecting P2PKit client");
+        client.connect(APP_KEY);
+    }
 
 } else {
-    ConnectionResultHandling.showAlertDialogForConnectionError(context, isP2PServicesAvailable);
+    ConnectionResultHandling.showAlertDialogForConnectionError(this, statusCode);
 }
 ```
 
@@ -81,12 +77,12 @@ private final ConnectionCallbacks mConnectionCallbacks = new ConnectionCallbacks
 };
 ```
 
-## General API remarks
-The SDK has two very simple APIs. One is event based, the other one is an Android Content Provider.
-- The event based API will notify you only when an event happens.
-- The Content Provider provides the current overview of all discovered peers and notifies you when the overview changes.
+Once the `ConnectionCallbacks` is registered with the KitClient instance updates to the connection state will be forwarded to the listener.
+Note that if a listener is registered to an already connected KitClient, `onConnected()` will directly be called.
 
-## Event based API
+## API
+An API in considered to be in use if it has one or more listeners registered. If no listeners are registered,
+it is assumed that no one is interested in this API and it might be disabled for battery saving reasons.
 
 ### P2P Discovery
 
@@ -95,6 +91,10 @@ Implement `P2pListener` to receive P2P discovery events
 ```java
 private final P2pListener mP2pDiscoveryListener = new P2pListener() {
     @Override
+    public void onStateChanged(int state) {
+    }
+
+    @Override
     public void onPeerDiscovered(final UUID nodeId) {
     }
 
@@ -102,6 +102,12 @@ private final P2pListener mP2pDiscoveryListener = new P2pListener() {
     public void onPeerLost(final UUID nodeId) {
     }
 };
+```
+
+Register the listener to get event updates and enable P2P Discovery
+
+```java
+KitClient.getInstance(context).getDiscoveryServices().addListener(mP2pDiscoveryListener);
 ```
 
 ### GEO Discovery
@@ -124,14 +130,13 @@ private final GeoListener mGeoDiscoveryListener = new GeoListener() {
 };
 ```
 
-### Online Messaging
-
-You can send messages to previously discovered peers using the `MessageServices`
+Register the listener to get event updates and enable GEO Discovery
 
 ```java
-// sending a message to the peer
-KitClient.getMessageService().sendMessage(nodeId, "SimpleChatMessage", "Hello!".getBytes());
+KitClient.getInstance(context).getDiscoveryServices().addListener(mGeoDiscoveryListener);
 ```
+
+### Online Messaging
 
 Implement `MessageListener` to receive messages from other peers
 
@@ -147,26 +152,40 @@ private final MessageListener mMessageListener = new MessageListener() {
 };
 ```
 
-## Content Provider API
-
-When the KitClient is successfully connected, information about discovered peers is available by querying the 'Peers ContentProvider'. This includes data about all currently visible and historically discovered peers 
+Register the listener to get event updates/receive messages and enable Online Messaging
 
 ```java
-  Uri peersContentUri = KitClient.getPeerContentUri();
-  ContentResolver contentResolver = context.getContentResolver();
+KitClient.getInstance(context).getMessageServices().addListener(mMessageListener)
+```
 
-  Cursor cursor = contentResolver.query(peersContentUri, null, null, null, null);
+You can send messages to previously discovered peers using the `MessageServices`
 
-  int nodeIdColumnIndex = cursor.getColumnIndex(PeersContract.NODE_ID);
-  int lastSeenColumnIndex = cursor.getColumnIndex(PeersContract.LAST_SEEN);
+```java
+// sending a message to the peer
+boolean forwarded = KitClient.getMessageService().sendMessage(nodeId, "text/plain", "Hello!".getBytes());
+```
+Note that the KitClient needs to be connected and Online Messaging must be enabled in order to forward a message.
 
-  while (cursor.moveToNext()) {
+### Content Provider
+
+When the KitClient is successfully connected, information about discovered peers (P2P and GEO) is available by querying the 'Peers ContentProvider'. This returns data about all currently visible and historically discovered peers, i.e. the current state of all discovered peers.
+
+```java
+Uri peersContentUri = KitClient.getPeerContentUri();
+ContentResolver contentResolver = context.getContentResolver();
+
+Cursor cursor = contentResolver.query(peersContentUri, null, null, null, null);
+
+int nodeIdColumnIndex = cursor.getColumnIndex(PeersContract.NODE_ID);
+int lastSeenColumnIndex = cursor.getColumnIndex(PeersContract.LAST_SEEN);
+
+while (cursor.moveToNext()) {
     UUID nodeId = UUID.fromString(cursor.getString(nodeIdColumnIndex));
     long lastSeen = cursor.getLong(lastSeenColumnIndex);
 
     Log.d("TAG", "Peer: " + nodeId + " was last seen: " + SimpleDateFormat.getInstance().format(new Date(lastSeen)));
-  }
-  cursor.close();
+}
+cursor.close();
 ```
 
 For all available data columns please see the documentation for the 'PeersContract'

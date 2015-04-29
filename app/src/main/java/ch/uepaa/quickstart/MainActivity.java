@@ -22,11 +22,16 @@ public class MainActivity extends ActionBarActivity {
     private static final String APP_KEY = "<YOUR APP KEY>";
     private final P2pListener mP2pDiscoveryListener = new P2pListener() {
         @Override
+        public void onStateChanged(final int state) {
+            logToView("P2pListener | State changed: " + state);
+        }
+
+        @Override
         public void onPeerDiscovered(final UUID nodeId) {
             logToView("P2pListener | Peer discovered: " + nodeId);
 
             // sending a message to the peer
-            KitClient.getMessageService().sendMessage(nodeId, "SimpleChatMessage", "From Android: Hello P2P!".getBytes());
+            KitClient.getInstance(MainActivity.this).getMessageServices().sendMessage(nodeId, "SimpleChatMessage", "From Android: Hello P2P!".getBytes());
         }
 
         @Override
@@ -36,7 +41,7 @@ public class MainActivity extends ActionBarActivity {
     };
     private final GeoListener mGeoDiscoveryListener = new GeoListener() {
         @Override
-        public void onStateChanged(int state) {
+        public void onStateChanged(final int state) {
             logToView("GeoListener | State changed: " + state);
         }
 
@@ -45,7 +50,7 @@ public class MainActivity extends ActionBarActivity {
             logToView("GeoListener | Peer discovered: " + nodeId);
 
             // sending a message to the peer
-            KitClient.getMessageService().sendMessage(nodeId, "SimpleChatMessage", "From Android: Hello GEO!".getBytes());
+            KitClient.getInstance(MainActivity.this).getMessageServices().sendMessage(nodeId, "SimpleChatMessage", "From Android: Hello GEO!".getBytes());
         }
 
         @Override
@@ -55,17 +60,16 @@ public class MainActivity extends ActionBarActivity {
     };
     private final MessageListener mMessageListener = new MessageListener() {
         @Override
-        public void onStateChanged(int state) {
+        public void onStateChanged(final int state) {
             logToView("MessageListener | State changed: " + state);
         }
 
         @Override
-        public void onMessageReceived(long timestamp, UUID origin, String type, byte[] message) {
+        public void onMessageReceived(final long timestamp, final UUID origin, final String type, final byte[] message) {
             logToView("MessageListener | Message received: From=" + origin + " type=" + type + " message=" + new String(message));
         }
     };
-    private TextView logView;
-    private KitClient mP2pClient;
+    private TextView mLogView;
     private final ConnectionCallbacks mConnectionCallbacks = new ConnectionCallbacks() {
         @Override
         public void onConnected() {
@@ -81,7 +85,6 @@ public class MainActivity extends ActionBarActivity {
         public void onConnectionFailed(ConnectionResult connectionResult) {
             logToView("Connection to P2P Services failed with status: " + connectionResult.getStatusCode());
             ConnectionResultHandling.showAlertDialogForConnectionError(MainActivity.this, connectionResult.getStatusCode());
-            mP2pClient = null;
         }
     };
 
@@ -90,7 +93,7 @@ public class MainActivity extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        logView = (TextView) findViewById(R.id.textView);
+        mLogView = (TextView) findViewById(R.id.textView);
 
         findViewById(R.id.startButton).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -107,39 +110,58 @@ public class MainActivity extends ActionBarActivity {
         });
     }
 
-    private void startAll() {
-        final int isP2PServicesAvailable = KitClient.isP2PServicesAvailable(this);
-        if (isP2PServicesAvailable == ConnectionResult.SUCCESS) {
-            logToView("Starting everything");
-            mP2pClient = new KitClient.Builder(this)
-                    .addConnectionCallbacks(mConnectionCallbacks)
-                    .addApi(KitClient.API.P2P_DISCOVERY)
-                    .addApi(KitClient.API.GEO_DISCOVERY)
-                    .addApi(KitClient.API.MESSAGING)
-                    .build();
+    @Override
+    protected void onResume() {
+        super.onResume();
 
-            DiscoveryServices.addListener(mP2pDiscoveryListener);
-            DiscoveryServices.addListener(mGeoDiscoveryListener);
-            MessageServices.addListener(mMessageListener);
+        final int statusCode = KitClient.isP2PServicesAvailable(this);
+        if (statusCode == ConnectionResult.SUCCESS) {
+            KitClient client = KitClient.getInstance(this);
+            client.registerConnectionCallbacks(mConnectionCallbacks);
 
-            mP2pClient.connect(APP_KEY);
+            if (client.isConnected()) {
+                logToView("Client already connected");
+            } else {
+                logToView("Connecting P2PKit client");
+                client.connect(APP_KEY);
+            }
+
         } else {
-            logToView("Cannot start everything yet");
-            ConnectionResultHandling.showAlertDialogForConnectionError(this, isP2PServicesAvailable);
+            logToView("Cannot start everything yet, status code: " + statusCode);
+            ConnectionResultHandling.showAlertDialogForConnectionError(this, statusCode);
         }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+
+        KitClient client = KitClient.getInstance(this);
+        client.unregisterConnectionCallbacks(mConnectionCallbacks);
+        client.disconnect();
+    }
+
+    private void startAll() {
+        logToView("Start all called");
+        MessageServices messageServices = KitClient.getInstance(this).getMessageServices();
+        messageServices.addListener(mMessageListener);
+
+        DiscoveryServices discoveryServices = KitClient.getInstance(this).getDiscoveryServices();
+        discoveryServices.addListener(mP2pDiscoveryListener);
+        discoveryServices.addListener(mGeoDiscoveryListener);
     }
 
     private void stopAll() {
-        if (mP2pClient != null) {
-            logToView("Stopping everything");
-            mP2pClient.disconnect();
-            mP2pClient = null;
-        } else {
-            logToView("Nothing to stop");
-        }
+        logToView("Stop all called");
+        MessageServices messageServices = KitClient.getInstance(this).getMessageServices();
+        messageServices.removeListener(mMessageListener);
+
+        DiscoveryServices discoveryServices = KitClient.getInstance(this).getDiscoveryServices();
+        discoveryServices.removeListener(mP2pDiscoveryListener);
+        discoveryServices.removeListener(mGeoDiscoveryListener);
     }
 
     private void logToView(String message) {
-        logView.setText(message + "\n" + logView.getText());
+        mLogView.setText(message + "\n" + mLogView.getText());
     }
 }
