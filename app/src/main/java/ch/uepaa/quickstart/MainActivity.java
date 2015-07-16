@@ -79,6 +79,8 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onConnected() {
             logToView("Successfully connected to P2P Services, with id: " + KitClient.getInstance(MainActivity.this).getNodeId().toString());
+            startP2pDiscovery();
+            startGeoDiscovery();
         }
 
         @Override
@@ -104,8 +106,6 @@ public class MainActivity extends AppCompatActivity {
         setupUI();
 
         enableKit();
-        startP2pDiscovery();
-        startGeoDiscovery();
     }
 
     private void enableKit() {
