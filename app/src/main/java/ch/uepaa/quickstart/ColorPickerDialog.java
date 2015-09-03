@@ -35,6 +35,7 @@ public class ColorPickerDialog extends DialogFragment {
         LayoutInflater inflater = getActivity().getLayoutInflater();
         View view = inflater.inflate(R.layout.color_picker_dialog, null);
         mPicker = (ColorPicker) view.findViewById(R.id.picker);
+        mPicker.setShowOldCenterColor(false);
 
         android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(getActivity());
         builder.setView(view);
