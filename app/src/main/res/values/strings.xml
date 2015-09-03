@@ -6,5 +6,8 @@
     <string name="p2p">P2P\nDiscovery</string>
     <string name="geo">GEO\nDiscovery</string>
     <string name="clear">Clear Log</string>
+    <string name="changeColor">Change Color</string>
+    <string name="chooseColor">Choose your color</string>
+    <string name="set">Set</string>
 
 </resources>

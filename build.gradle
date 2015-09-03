@@ -15,6 +15,7 @@ buildscript {
 allprojects {
     repositories {
         jcenter()
+        mavenLocal()
         maven {
             url "http://p2pkit.io/maven2"
         }

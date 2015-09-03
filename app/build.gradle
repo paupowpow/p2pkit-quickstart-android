@@ -21,5 +21,6 @@ android {
 
 dependencies {
     compile 'com.android.support:appcompat-v7:22.1.1'
-    compile 'ch.uepaa.p2p:p2pkit-android:0.5.2'
+    compile 'ch.uepaa.p2p:p2pkit-android:0.7.0-SNAPSHOT'
+    compile 'com.larswerkman:HoloColorPicker:1.5'
 }

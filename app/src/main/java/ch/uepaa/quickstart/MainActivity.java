@@ -1,5 +1,6 @@
 package ch.uepaa.quickstart;
 
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.text.format.DateFormat;
@@ -15,13 +16,14 @@ import ch.uepaa.p2pkit.ConnectionResult;
 import ch.uepaa.p2pkit.ConnectionResultHandling;
 import ch.uepaa.p2pkit.KitClient;
 import ch.uepaa.p2pkit.discovery.GeoListener;
+import ch.uepaa.p2pkit.discovery.InfoTooLongException;
 import ch.uepaa.p2pkit.discovery.P2pListener;
+import ch.uepaa.p2pkit.discovery.Peer;
 import ch.uepaa.p2pkit.messaging.MessageListener;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements ColorPickerDialog.ColorPickerListener{
 
     private static final String APP_KEY = "<YOUR APP KEY>";
-    private static boolean mIsStarting;
 
     private final P2pListener mP2pDiscoveryListener = new P2pListener() {
 
@@ -31,13 +33,22 @@ public class MainActivity extends AppCompatActivity {
         }
 
         @Override
-        public void onPeerDiscovered(final UUID nodeId) {
-            logToView("P2pListener | Peer discovered: " + nodeId);
+        public void onPeerDiscovered(final Peer peer) {
+            //TODO: check input?
+            byte[] colorBytes = peer.getDiscoveryInfo();
+            logToView("P2pListener | Peer discovered: " + peer.getNodeId() + " with color: " + getHexRepresentation(colorBytes));
         }
 
         @Override
-        public void onPeerLost(final UUID nodeId) {
-            logToView("P2pListener | Peer lost: " + nodeId);
+        public void onPeerLost(final Peer peer) {
+            logToView("P2pListener | Peer lost: " + peer.getNodeId());
+        }
+
+        @Override
+        public void onPeerUpdatedDiscoveryInfo(Peer peer) {
+            //TODO: check input?
+            byte[] colorBytes = peer.getDiscoveryInfo();
+            logToView("P2pListener | Peer updated: " + peer.getNodeId() + " with new color: " + getHexRepresentation(colorBytes));
         }
     };
 
@@ -81,8 +92,19 @@ public class MainActivity extends AppCompatActivity {
         public void onConnected() {
             logToView("Successfully connected to P2P Services, with id: " + KitClient.getInstance(MainActivity.this).getNodeId().toString());
 
-            if (mIsStarting) {
-                mIsStarting = false;
+            mP2pSwitch.setEnabled(true);
+            mGeoSwitch.setEnabled(true);
+
+            if (mShouldStartServices) {
+                mShouldStartServices = false;
+
+                try {
+                    byte[] colorBytes = getColorBytes(mCurrentColor);
+                    KitClient.getInstance(MainActivity.this).getDiscoveryServices().setP2pDiscoveryInfo(colorBytes);
+                } catch (InfoTooLongException e) {
+                    logToView("P2pListener | The discovery info is too long");
+                }
+
                 startP2pDiscovery();
                 startGeoDiscovery();
             }
@@ -91,6 +113,9 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onConnectionSuspended() {
             logToView("Connection to P2P Services suspended");
+
+            mGeoSwitch.setEnabled(false);
+            mP2pSwitch.setEnabled(false);
         }
 
         @Override
@@ -99,6 +124,10 @@ public class MainActivity extends AppCompatActivity {
             ConnectionResultHandling.showAlertDialogForConnectionError(MainActivity.this, connectionResult.getStatusCode());
         }
     };
+
+    private boolean mShouldStartServices;
+
+    private int mCurrentColor;
 
     private TextView mLogView;
     private Switch mP2pSwitch;
@@ -110,8 +139,24 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         setupUI();
 
-        mIsStarting = true;
-        enableKit();
+        mShouldStartServices = true;
+        showColorPickerDialog();
+    }
+
+    @Override
+    public void onColorPicked(int colorCode) {
+        mCurrentColor = colorCode;
+
+        if (mShouldStartServices) {
+            enableKit();
+        } else if (KitClient.getInstance(this).isConnected()) {
+            try {
+                byte[] colorBytes = getColorBytes(mCurrentColor);
+                KitClient.getInstance(this).getDiscoveryServices().setP2pDiscoveryInfo(colorBytes);
+            } catch (InfoTooLongException e) {
+                logToView("P2pListener | The discovery info is too long");
+            }
+        }
     }
 
     private void enableKit() {
@@ -168,12 +213,34 @@ public class MainActivity extends AppCompatActivity {
         mLogView.setText("");
     }
 
+    private String getHexRepresentation(byte[] colorBytes) {
+        int colorCode = Color.rgb(colorBytes[0] & 0xFF, colorBytes[1] & 0xFF, colorBytes[2] & 0xFF);
+        return String.format("#%06X", (0xFFFFFF & colorCode));
+    }
+
+    private byte[] getColorBytes(int color) {
+        byte[] colorBytes = new byte[3];
+        colorBytes[0] = (byte) Color.red(color);
+        colorBytes[1] = (byte) Color.green(color);
+        colorBytes[2] = (byte) Color.blue(color);
+
+        return colorBytes;
+    }
+
     private void setupUI(){
         mLogView = (TextView) findViewById(R.id.textView);
+
         findViewById(R.id.clearTextView).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 clearLogs();
+            }
+        });
+
+        findViewById(R.id.changeColorTextView).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showColorPickerDialog();
             }
         });
 
@@ -183,16 +250,10 @@ public class MainActivity extends AppCompatActivity {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
 
                 if (isChecked) {
-                    mP2pSwitch.setEnabled(true);
-                    mGeoSwitch.setEnabled(true);
-
                     enableKit();
                 } else {
                     mP2pSwitch.setChecked(false);
-                    mP2pSwitch.setEnabled(false);
-
                     mGeoSwitch.setChecked(false);
-                    mGeoSwitch.setEnabled(false);
 
                     disableKit();
                 }
@@ -222,5 +283,10 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+    }
+
+    private void showColorPickerDialog() {
+        ColorPickerDialog dialog = new ColorPickerDialog();
+        dialog.show(getFragmentManager(), "ColorPicker");
     }
 }
