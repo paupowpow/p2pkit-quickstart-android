@@ -34,9 +34,11 @@ public class MainActivity extends AppCompatActivity implements ColorPickerDialog
 
         @Override
         public void onPeerDiscovered(final Peer peer) {
-            //TODO: check input?
+            //TODO: more input checks?
             byte[] colorBytes = peer.getDiscoveryInfo();
-            logToView("P2pListener | Peer discovered: " + peer.getNodeId() + " with color: " + getHexRepresentation(colorBytes));
+            if (colorBytes != null && colorBytes.length == 3) {
+                logToView("P2pListener | Peer discovered: " + peer.getNodeId() + " with color: " + getHexRepresentation(colorBytes));
+            }
         }
 
         @Override
@@ -46,9 +48,11 @@ public class MainActivity extends AppCompatActivity implements ColorPickerDialog
 
         @Override
         public void onPeerUpdatedDiscoveryInfo(Peer peer) {
-            //TODO: check input?
+            //TODO: more input checks?
             byte[] colorBytes = peer.getDiscoveryInfo();
-            logToView("P2pListener | Peer updated: " + peer.getNodeId() + " with new color: " + getHexRepresentation(colorBytes));
+            if (colorBytes != null && colorBytes.length == 3) {
+                logToView("P2pListener | Peer updated: " + peer.getNodeId() + " with new color: " + getHexRepresentation(colorBytes));
+            }
         }
     };
 
@@ -240,6 +244,11 @@ public class MainActivity extends AppCompatActivity implements ColorPickerDialog
     }
 
     private void startP2pDiscovery(){
+        try {
+            KitClient.getInstance(this).getDiscoveryServices().setP2pDiscoveryInfo(getColorBytes(mCurrentColor));
+        } catch (InfoTooLongException e) {
+            logToView("P2pListener | The discovery info is too long");
+        }
         KitClient.getInstance(this).getDiscoveryServices().addListener(mP2pDiscoveryListener);
     }
 
