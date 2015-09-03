@@ -199,3 +199,4 @@ http://p2pkit.io/javadoc/
 ### p2pkit License
 
 * By using P2PKit you agree to abide by our License (which is included with P2PKit) and Terms Of Service available at http://www.p2pkit.io/policy.html.
+* Please refer to "Third_party_licenses.txt" included with P2PKit.framework for 3rd party software that P2PKit.framework may be using - You will need to abide by their licenses as well
