@@ -159,6 +159,64 @@ public class MainActivity extends AppCompatActivity implements ColorPickerDialog
         }
     }
 
+    private void setupUI(){
+        mLogView = (TextView) findViewById(R.id.textView);
+
+        findViewById(R.id.clearTextView).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                clearLogs();
+            }
+        });
+
+        findViewById(R.id.changeColorTextView).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showColorPickerDialog();
+            }
+        });
+
+        Switch kitSwitch = (Switch) findViewById(R.id.kitSwitch);
+        kitSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+
+                if (isChecked) {
+                    enableKit();
+                } else {
+                    mP2pSwitch.setChecked(false);
+                    mGeoSwitch.setChecked(false);
+
+                    disableKit();
+                }
+            }
+        });
+
+        mP2pSwitch = (Switch) findViewById(R.id.p2pSwitch);
+        mP2pSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    startP2pDiscovery();
+                } else {
+                    stopP2pDiscovery();
+                }
+            }
+        });
+
+        mGeoSwitch = (Switch) findViewById(R.id.geoSwitch);
+        mGeoSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked){
+                    startGeoDiscovery();
+                } else {
+                    stopGeoDiscovery();
+                }
+            }
+        });
+    }
+
     private void enableKit() {
         final int statusCode = KitClient.isP2PServicesAvailable(this);
         if (statusCode == ConnectionResult.SUCCESS) {
@@ -225,64 +283,6 @@ public class MainActivity extends AppCompatActivity implements ColorPickerDialog
         colorBytes[2] = (byte) Color.blue(color);
 
         return colorBytes;
-    }
-
-    private void setupUI(){
-        mLogView = (TextView) findViewById(R.id.textView);
-
-        findViewById(R.id.clearTextView).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                clearLogs();
-            }
-        });
-
-        findViewById(R.id.changeColorTextView).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showColorPickerDialog();
-            }
-        });
-
-        Switch kitSwitch = (Switch) findViewById(R.id.kitSwitch);
-        kitSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-
-                if (isChecked) {
-                    enableKit();
-                } else {
-                    mP2pSwitch.setChecked(false);
-                    mGeoSwitch.setChecked(false);
-
-                    disableKit();
-                }
-            }
-        });
-
-        mP2pSwitch = (Switch) findViewById(R.id.p2pSwitch);
-        mP2pSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (isChecked) {
-                    startP2pDiscovery();
-                } else {
-                    stopP2pDiscovery();
-                }
-            }
-        });
-
-        mGeoSwitch = (Switch) findViewById(R.id.geoSwitch);
-        mGeoSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (isChecked){
-                    startGeoDiscovery();
-                } else {
-                    stopGeoDiscovery();
-                }
-            }
-        });
     }
 
     private void showColorPickerDialog() {
