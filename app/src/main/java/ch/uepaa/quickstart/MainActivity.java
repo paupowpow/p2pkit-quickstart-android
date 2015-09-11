@@ -25,6 +25,8 @@ public class MainActivity extends AppCompatActivity implements ColorPickerDialog
 
     private static final String APP_KEY = "<YOUR APP KEY>";
 
+    private boolean mWantToConnect = false;
+
     private final P2pListener mP2pDiscoveryListener = new P2pListener() {
 
         @Override
@@ -34,7 +36,6 @@ public class MainActivity extends AppCompatActivity implements ColorPickerDialog
 
         @Override
         public void onPeerDiscovered(final Peer peer) {
-            //TODO: more input checks?
             byte[] colorBytes = peer.getDiscoveryInfo();
             if (colorBytes != null && colorBytes.length == 3) {
                 logToView("P2pListener | Peer discovered: " + peer.getNodeId() + " with color: " + getHexRepresentation(colorBytes));
@@ -48,7 +49,6 @@ public class MainActivity extends AppCompatActivity implements ColorPickerDialog
 
         @Override
         public void onPeerUpdatedDiscoveryInfo(Peer peer) {
-            //TODO: more input checks?
             byte[] colorBytes = peer.getDiscoveryInfo();
             if (colorBytes != null && colorBytes.length == 3) {
                 logToView("P2pListener | Peer updated: " + peer.getNodeId() + " with new color: " + getHexRepresentation(colorBytes));
@@ -163,6 +163,16 @@ public class MainActivity extends AppCompatActivity implements ColorPickerDialog
         }
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        // When to user comes back from playstore after installing p2p services, try to enable p2pkit again
+        if(mWantToConnect && !KitClient.getInstance(this).isConnected()) {
+            enableKit();
+        }
+    }
+
     private void setupUI(){
         mLogView = (TextView) findViewById(R.id.textView);
 
@@ -191,6 +201,7 @@ public class MainActivity extends AppCompatActivity implements ColorPickerDialog
                     mP2pSwitch.setChecked(false);
                     mGeoSwitch.setChecked(false);
 
+                    mWantToConnect = false;
                     disableKit();
                 }
             }
@@ -222,6 +233,7 @@ public class MainActivity extends AppCompatActivity implements ColorPickerDialog
     }
 
     private void enableKit() {
+
         final int statusCode = KitClient.isP2PServicesAvailable(this);
         if (statusCode == ConnectionResult.SUCCESS) {
             KitClient client = KitClient.getInstance(this);
@@ -233,7 +245,9 @@ public class MainActivity extends AppCompatActivity implements ColorPickerDialog
                 logToView("Connecting P2PKit client");
                 client.connect(APP_KEY);
             }
+            mWantToConnect = false;
         } else {
+            mWantToConnect = true;
             logToView("Cannot start P2PKit, status code: " + statusCode);
             ConnectionResultHandling.showAlertDialogForConnectionError(this, statusCode);
         }
@@ -286,12 +300,7 @@ public class MainActivity extends AppCompatActivity implements ColorPickerDialog
     }
 
     private byte[] getColorBytes(int color) {
-        byte[] colorBytes = new byte[3];
-        colorBytes[0] = (byte) Color.red(color);
-        colorBytes[1] = (byte) Color.green(color);
-        colorBytes[2] = (byte) Color.blue(color);
-
-        return colorBytes;
+        return new byte[] {(byte) Color.red(color), (byte) Color.green(color), (byte) Color.blue(color)};
     }
 
     private void showColorPickerDialog() {

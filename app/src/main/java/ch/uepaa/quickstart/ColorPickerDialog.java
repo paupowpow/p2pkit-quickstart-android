@@ -16,8 +16,8 @@ public class ColorPickerDialog extends DialogFragment {
         void onColorPicked(int colorCode);
     }
 
-    ColorPickerListener mListener;
-    ColorPicker mPicker;
+    private ColorPickerListener mListener;
+    private ColorPicker mPicker;
 
     @Override
     public void onAttach(Activity activity) {
