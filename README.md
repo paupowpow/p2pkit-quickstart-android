@@ -1,4 +1,4 @@
-# p2pkit.io (beta) Quickstart
+# p2pkit.io Android Quickstart
 
 #### A hyperlocal interaction toolkit
 p2pkit is an easy to use SDK that bundles together several discovery technologies kung-fu style! With just a few lines of code, p2pkit enables you to accurately discover and directly message users nearby.
@@ -15,13 +15,18 @@ p2pkit is an easy to use SDK that bundles together several discovery technologie
 **[Documentation](#documentation)**  
 **[p2pkit License](#p2pkit-license)**
 
+### Quickstart video
+[![Get started video](https://i.ytimg.com/vi/kmFOgtEbFLM/mqdefault.jpg)](https://youtu.be/kmFOgtEbFLM)
+
+[Watch video here](https://youtu.be/kmFOgtEbFLM)
+
 ### Signup
 
 Request your personal application key: http://p2pkit.io/signup.html
 
 ### Setup Android Studio project
 
-Include the p2pkit maven repository and p2pkit (beta) dependencies in your gradle build files
+Include the p2pkit maven repository and p2pkit dependencies in your gradle build files.
 
 ```
 repositories {
@@ -33,13 +38,13 @@ repositories {
 ...
 dependencies {
   ...
-  compile 'ch.uepaa.p2p:p2pkit-android:0.5.2'
+  compile 'ch.uepaa.p2p:p2pkit-android:1.0.3'
 }
 ```
 
 ### Initialization
 
-Initialize the `KitClient` by calling `connect()` using your personal application key
+Initialize the `KitClient` by calling `connect()` using your personal application key.
 
 ```java
 final int statusCode = KitClient.isP2PServicesAvailable(this);
@@ -59,20 +64,23 @@ if (statusCode == ConnectionResult.SUCCESS) {
 }
 ```
 
-Implement `ConnectionCallbacks` to receive service status callbacks
+Implement `ConnectionCallbacks` to receive service status callbacks.
 
 ```java
 private final ConnectionCallbacks mConnectionCallbacks = new ConnectionCallbacks() {
     @Override
     public void onConnected() {
+        //ready to start discovery
     }
 
     @Override
     public void onConnectionSuspended() {
+        //p2pkit is now disconnected
     }
 
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult) {
+        //connection failed, handle connectionResult
     }
 };
 ```
@@ -81,56 +89,79 @@ Once the `ConnectionCallbacks` are registered with the KitClient instance, updat
 Note that if a listener is registered to a `KitClient` that's already connected, `onConnected()` will directly be called.
 
 ## API
-An API in considered to be in use if it has one or more listeners registered. If no listeners are registered,
+An API is considered to be in use if it has one or more listeners registered. If no listeners are registered,
 it is assumed that no one is interested in this API and it might be disabled for battery saving reasons.
 
 ### P2P Discovery
 
-Implement `P2pListener` to receive P2P discovery events
+Implement `P2pListener` to receive P2P discovery and update events.
 
 ```java
 private final P2pListener mP2pDiscoveryListener = new P2pListener() {
     @Override
-    public void onStateChanged(int state) {
+    public void onStateChanged(final int state) {
+        Log.d(TAG, "P2pListener | State changed: " + state);
     }
 
     @Override
-    public void onPeerDiscovered(final UUID nodeId) {
+    public void onPeerDiscovered(final Peer peer) {
+        Log.d(TAG, "P2pListener | Peer discovered: " + peer.getNodeId() + " with info: " + new String(peer.getDiscoveryInfo()));
     }
 
     @Override
-    public void onPeerLost(final UUID nodeId) {
+    public void onPeerLost(final Peer peer) {
+        Log.d(TAG, "P2pListener | Peer lost: " + peer.getNodeId());
+    }
+
+    @Override
+    public void onPeerUpdatedDiscoveryInfo(Peer peer) {
+        Log.d(TAG, "P2pListener | Peer updated: " + peer.getNodeId() + " with new info: " + new String(peer.getDiscoveryInfo()));
     }
 };
 ```
 
-Register the listener to get event updates and enable P2P Discovery
+Set or update the discovery info, which other peers will receive. Note that the info cannot be longer than 440 bytes.
+
+```java
+try {
+        KitClient.getInstance(this).getDiscoveryServices().setP2pDiscoveryInfo("Hello p2pkit".getBytes());
+} catch (InfoTooLongException e) {
+        logToView("P2pListener | The discovery info is too long");
+}
+```
+
+Register the listener to get event updates and enable P2P Discovery.
 
 ```java
 KitClient.getInstance(context).getDiscoveryServices().addListener(mP2pDiscoveryListener);
 ```
 
+Note that the discovery info can be omitted and delivered with a later call to `onPeerUpdatedDiscoveryInfo(Peer peer)`. This depends on the technology and load.
+
 ### GEO Discovery
 
-Implement `GeoListener` to receive GEO discovery events
+Implement `GeoListener` to receive GEO discovery events.
 
 ```java
 private final GeoListener mGeoDiscoveryListener = new GeoListener() {
     @Override
     public void onStateChanged(int state) {
+        Log.d(TAG, "GeoListener | State changed: " + state);
     }
 
     @Override
     public void onPeerDiscovered(final UUID nodeId) {
+        Log.d(TAG, "GeoListener | Peer discovered: " + nodeId);
     }
 
     @Override
     public void onPeerLost(final UUID nodeId) {
+        Log.d(TAG, "GeoListener | Peer lost: " + nodeId);
     }
 };
 ```
 
-Register the listener to get event updates and enable GEO Discovery
+Register the listener to get event updates and enable GEO Discovery.
 
 ```java
 KitClient.getInstance(context).getDiscoveryServices().addListener(mGeoDiscoveryListener);
@@ -144,25 +175,27 @@ Implement `MessageListener` to receive messages from other peers
 private final MessageListener mMessageListener = new MessageListener() {
     @Override
     public void onStateChanged(int state) {
+        Log.d(TAG, "MessageListener | State changed: " + state);
     }
 
     @Override
     public void onMessageReceived(long timestamp, UUID origin, String type, byte[] message) {
+        Log.d(TAG, "MessageListener | Message received: From=" + origin + " type=" + type + " message=" + new String(message));
     }
 };
 ```
 
-Register the listener to get event updates/receive messages and enable Online Messaging
+Register the listener to get event updates/receive messages and enable Online Messaging.
 
 ```java
-KitClient.getInstance(context).getMessageServices().addListener(mMessageListener)
+KitClient.getInstance(context).getMessageServices().addListener(mMessageListener);
 ```
 
-You can send messages to previously discovered peers using the `MessageServices`
+You can send messages to previously discovered peers using the `MessageServices`.
 
 ```java
 // sending a message to the peer
-boolean forwarded = KitClient.getMessageService().sendMessage(nodeId, "text/plain", "Hello!".getBytes());
+boolean forwarded = KitClient.getInstance(context).getMessageServices().sendMessage(nodeId, "text/plain", "Hello!".getBytes());
 ```
 Note that the KitClient needs to be connected and Online Messaging must be enabled in order to forward a message.
 
@@ -171,7 +204,7 @@ Note that the KitClient needs to be connected and Online Messaging must be enabl
 When the KitClient is successfully connected, information about discovered peers (P2P and GEO) is available by querying the 'Peers ContentProvider'. This returns data about all currently visible and historically discovered peers, i.e. the current state of all discovered peers.
 
 ```java
-Uri peersContentUri = KitClient.getPeerContentUri();
+Uri peersContentUri = KitClient.getInstance(context).getPeerContentUri();
 ContentResolver contentResolver = context.getContentResolver();
 
 Cursor cursor = contentResolver.query(peersContentUri, null, null, null, null);
@@ -188,7 +221,7 @@ while (cursor.moveToNext()) {
 cursor.close();
 ```
 
-For all available data columns please see the documentation for the 'PeersContract'
+For all available data columns please see the documentation for the 'PeersContract'.
 
 ## Documentation
 
@@ -199,4 +232,4 @@ http://p2pkit.io/javadoc/
 ### p2pkit License
 
 * By using P2PKit you agree to abide by our License (which is included with P2PKit) and Terms Of Service available at http://www.p2pkit.io/policy.html.
-* Please refer to "Third_party_licenses.txt" included with P2PKit.framework for 3rd party software that P2PKit.framework may be using - You will need to abide by their licenses as well
+* Please refer to "Third_party_licenses.txt" included with P2PKit Quickstart for 3rd party software that P2PKit Quickstart may be using - You will need to abide by their licenses as well.
