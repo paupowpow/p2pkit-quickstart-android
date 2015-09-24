@@ -1,30 +1,40 @@
 # p2pkit.io Android Quickstart
 
 #### A hyperlocal interaction toolkit
-p2pkit is an easy to use SDK that bundles together several discovery technologies kung-fu style! With just a few lines of code, p2pkit enables you to accurately discover and directly message users nearby.
+p2pkit is an easy to use SDK that bundles together several proximity technologies kung-fu style! With p2pkit apps immediately understand their proximity to nearby devices and users, 'verify' their identity, and exchange information with them.
 
 ### Table of Contents
 
+**[How it works](#how-it-works)**  
 **[Signup](#signup)**  
 **[Setup Android Studio project](#setup-android-studio-project)**  
 **[Initialization](#initialization)**  
 **[P2P Discovery](#p2p-discovery)**  
-**[GEO Discovery](#geo-discovery)**  
-**[Online Messaging](#online-messaging)**  
-**[Content Provider API](#content-provider-api)**  
+**[GEO Discovery (beta)](#geo-discovery-beta)**  
+**[Online Messaging (beta)](#online-messaging-beta)**  
+**[Content Provider API](#content-provider)**  
 **[Documentation](#documentation)**  
+**[Release notes](#release-notes)**  
 **[p2pkit License](#p2pkit-license)**
 
-### Quickstart video
+### Get started video
 [![Get started video](https://i.ytimg.com/vi/iId5n7lhJ5Y/mqdefault.jpg)](https://youtu.be/iId5n7lhJ5Y)
 
 [Watch video here](https://youtu.be/iId5n7lhJ5Y)
 
+### How it works
+
+[![p2pkit - how it works](p2pkit-android-explained.jpg)](https://github.com/Uepaa-AG/p2pkit-quickstart-android)
+
+The Android P2PKit library, called `KitClient`, is an API library. The functionality is provided by the P2P Services app available in the Android Play Store. This has the advantage that the users will benefit from any improvements made to P2P Services, without updating the app using P2PKit.
+The P2P Services are similar in their workings to the Google Play Sevices.
+
 ### Signup
 
-Request your personal application key: http://p2pkit.io/signup.html
+Request your evaluation/testing application key: http://p2pkit.io/signup.html
 
 ### Setup Android Studio project
+**P2PKit supports Android version 4.1 and above.**
 
 Include the p2pkit maven repository and p2pkit dependencies in your gradle build files.
 
@@ -44,7 +54,7 @@ dependencies {
 
 ### Initialization
 
-Initialize the `KitClient` by calling `connect()` using your personal application key.
+Initialize the `KitClient` by calling `connect()` using your personal application key and register your.
 
 ```java
 final int statusCode = KitClient.isP2PServicesAvailable(this);
@@ -86,9 +96,10 @@ private final ConnectionCallbacks mConnectionCallbacks = new ConnectionCallbacks
 ```
 
 Once the `ConnectionCallbacks` are registered with the KitClient instance, updates to the connection state will be forwarded to the listener.
-Note that if a listener is registered to a `KitClient` that's already connected, `onConnected()` will directly be called.
+`onConnected()` is immediately called for every additional listener added, if `KitClient` is already connected.
 
 ## API
+
 An API is considered to be in use if it has one or more listeners registered. If no listeners are registered,
 it is assumed that no one is interested in this API and it might be disabled for battery saving reasons.
 
@@ -120,7 +131,7 @@ private final P2pListener mP2pDiscoveryListener = new P2pListener() {
 };
 ```
 
-Set or update the discovery info, which other peers will receive. Note that the info cannot be longer than 440 bytes.
+Set or update the discovery info, which other peers will receive.
 
 ```java
 try {
@@ -138,7 +149,7 @@ KitClient.getInstance(context).getDiscoveryServices().addListener(mP2pDiscoveryL
 
 Note that the discovery info can be omitted and delivered with a later call to `onPeerUpdatedDiscoveryInfo(Peer peer)`. This depends on the technology and load.
 
-### GEO Discovery
+### GEO Discovery (beta)
 
 Implement `GeoListener` to receive GEO discovery events.
 
@@ -167,7 +178,7 @@ Register the listener to get event updates and enable GEO Discovery.
 KitClient.getInstance(context).getDiscoveryServices().addListener(mGeoDiscoveryListener);
 ```
 
-### Online Messaging
+### Online Messaging (beta)
 
 Implement `MessageListener` to receive messages from other peers
 
@@ -229,7 +240,10 @@ For more details and further information, please refer to the Javadoc documentat
 
 http://p2pkit.io/javadoc/
 
+### Release notes
+
+Release notes can be found [here](http://p2pkit.io/changelog.html)
+
 ### p2pkit License
 
-* By using P2PKit you agree to abide by our License (which is included with P2PKit) and Terms Of Service available at http://www.p2pkit.io/policy.html.
-* Please refer to "Third_party_licenses.txt" included with P2PKit Quickstart for 3rd party software that P2PKit Quickstart may be using - You will need to abide by their licenses as well.
+* By using P2PKit you agree to abide by our Terms of Service, License Agreement and Policies which are available at the following address: http://p2pkit.io/policy.html
