@@ -1,6 +1,8 @@
 THE FOLLOWING SETS FORTH ATTRIBUTION NOTICES FOR THIRD PARTY SOFTWARE THAT MAY BE CONTAINED IN PORTIONS OF THE p2pkit-quickstart-android.app PRODUCT.
 ================================================================================================================================
 
+HoloColorPicker:
+
 Copyright 2012 Lars Werkman
 
  Licensed under the Apache License, Version 2.0 (the "License");
