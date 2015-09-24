@@ -16,9 +16,9 @@ p2pkit is an easy to use SDK that bundles together several discovery technologie
 **[p2pkit License](#p2pkit-license)**
 
 ### Quickstart video
-[![Get started video](https://i.ytimg.com/vi/kmFOgtEbFLM/mqdefault.jpg)](https://youtu.be/kmFOgtEbFLM)
+[![Get started video](https://i.ytimg.com/vi/iId5n7lhJ5Y/mqdefault.jpg)](https://youtu.be/iId5n7lhJ5Y)
 
-[Watch video here](https://youtu.be/kmFOgtEbFLM)
+[Watch video here](https://youtu.be/iId5n7lhJ5Y)
 
 ### Signup
 
