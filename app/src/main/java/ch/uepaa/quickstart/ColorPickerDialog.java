@@ -9,6 +9,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 
 import com.larswerkman.holocolorpicker.ColorPicker;
+import com.larswerkman.holocolorpicker.ValueBar;
 
 public class ColorPickerDialog extends DialogFragment {
 
@@ -16,8 +17,23 @@ public class ColorPickerDialog extends DialogFragment {
         void onColorPicked(int colorCode);
     }
 
+    private static final String COLOR_KEY = "color";
+
     private ColorPickerListener mListener;
     private ColorPicker mPicker;
+
+    public static ColorPickerDialog newInstance(int oldColor) {
+        ColorPickerDialog dialog = new ColorPickerDialog();
+
+        Bundle args = new Bundle();
+        args.putInt(COLOR_KEY, oldColor);
+        dialog.setArguments(args);
+
+        return dialog;
+    }
+
+    public ColorPickerDialog() {
+    }
 
     @Override
     public void onAttach(Activity activity) {
@@ -34,8 +50,11 @@ public class ColorPickerDialog extends DialogFragment {
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         LayoutInflater inflater = getActivity().getLayoutInflater();
         View view = inflater.inflate(R.layout.color_picker_dialog, null);
+        int oldColor = getArguments().getInt(COLOR_KEY);
+
         mPicker = (ColorPicker) view.findViewById(R.id.picker);
         mPicker.setShowOldCenterColor(false);
+        mPicker.setColor(oldColor);
 
         android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(getActivity());
         builder.setView(view);

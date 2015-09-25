@@ -39,6 +39,8 @@ public class MainActivity extends AppCompatActivity implements ColorPickerDialog
             byte[] colorBytes = peer.getDiscoveryInfo();
             if (colorBytes != null && colorBytes.length == 3) {
                 logToView("P2pListener | Peer discovered: " + peer.getNodeId() + " with color: " + getHexRepresentation(colorBytes));
+            } else {
+                logToView("P2pListener | Peer discovered: " + peer.getNodeId() + " without color");
             }
         }
 
@@ -173,7 +175,7 @@ public class MainActivity extends AppCompatActivity implements ColorPickerDialog
         }
     }
 
-    private void setupUI(){
+    private void setupUI() {
         mLogView = (TextView) findViewById(R.id.textView);
 
         findViewById(R.id.clearTextView).setOnClickListener(new View.OnClickListener() {
@@ -223,7 +225,7 @@ public class MainActivity extends AppCompatActivity implements ColorPickerDialog
         mGeoSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (isChecked){
+                if (isChecked) {
                     startGeoDiscovery();
                 } else {
                     stopGeoDiscovery();
@@ -253,11 +255,11 @@ public class MainActivity extends AppCompatActivity implements ColorPickerDialog
         }
     }
 
-    private void disableKit(){
+    private void disableKit() {
         KitClient.getInstance(this).disconnect();
     }
 
-    private void startP2pDiscovery(){
+    private void startP2pDiscovery() {
         try {
             KitClient.getInstance(this).getDiscoveryServices().setP2pDiscoveryInfo(getColorBytes(mCurrentColor));
         } catch (InfoTooLongException e) {
@@ -266,18 +268,18 @@ public class MainActivity extends AppCompatActivity implements ColorPickerDialog
         KitClient.getInstance(this).getDiscoveryServices().addListener(mP2pDiscoveryListener);
     }
 
-    private void stopP2pDiscovery(){
+    private void stopP2pDiscovery() {
         KitClient.getInstance(this).getDiscoveryServices().removeListener(mP2pDiscoveryListener);
         logToView("P2pListener removed");
     }
 
-    private void startGeoDiscovery(){
+    private void startGeoDiscovery() {
         KitClient.getInstance(this).getMessageServices().addListener(mMessageListener);
 
         KitClient.getInstance(this).getDiscoveryServices().addListener(mGeoDiscoveryListener);
     }
 
-    private void stopGeoDiscovery(){
+    private void stopGeoDiscovery() {
         KitClient.getInstance(this).getMessageServices().removeListener(mMessageListener);
         logToView("MessageListener removed");
 
@@ -304,7 +306,7 @@ public class MainActivity extends AppCompatActivity implements ColorPickerDialog
     }
 
     private void showColorPickerDialog() {
-        ColorPickerDialog dialog = new ColorPickerDialog();
+        ColorPickerDialog dialog = ColorPickerDialog.newInstance(mCurrentColor);
         dialog.show(getFragmentManager(), "ColorPicker");
     }
 }
