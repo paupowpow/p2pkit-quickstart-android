@@ -5,8 +5,10 @@ p2pkit is an easy to use SDK that bundles together several proximity technologie
 
 ### Table of Contents
 
+**[Get started video](#get-started-video)**  
 **[How it works](#how-it-works)**  
 **[Signup](#signup)**  
+**[Release notes](#release-notes)**  
 **[Setup Android Studio project](#setup-android-studio-project)**  
 **[Initialization](#initialization)**  
 **[P2P Discovery](#p2p-discovery)**  
@@ -14,7 +16,6 @@ p2pkit is an easy to use SDK that bundles together several proximity technologie
 **[Online Messaging (beta)](#online-messaging-beta)**  
 **[Content Provider API](#content-provider)**  
 **[Documentation](#documentation)**  
-**[Release notes](#release-notes)**  
 **[p2pkit License](#p2pkit-license)**
 
 ### Get started video
@@ -32,6 +33,10 @@ The P2P Services are similar in their workings to the Google Play Services.
 ### Signup
 
 Request your evaluation/testing application key: http://p2pkit.io/signup.html
+
+### Release notes
+
+Release notes can be found at http://p2pkit.io/changelog.html.
 
 ### Setup Android Studio project
 **P2PKit supports Android version 4.1 and above.**
@@ -235,10 +240,6 @@ For all available data columns please see the documentation for the 'PeersContra
 ## Documentation
 
 For more details and further information, please refer to the Javadoc documentation: http://p2pkit.io/javadoc/
-
-### Release notes
-
-Release notes can be found at http://p2pkit.io/changelog.html.
 
 ### p2pkit License
 
