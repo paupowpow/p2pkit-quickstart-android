@@ -9,7 +9,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 
 import com.larswerkman.holocolorpicker.ColorPicker;
-import com.larswerkman.holocolorpicker.ValueBar;
 
 public class ColorPickerDialog extends DialogFragment {
 

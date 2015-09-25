@@ -25,8 +25,6 @@ public class MainActivity extends AppCompatActivity implements ColorPickerDialog
 
     private static final String APP_KEY = "<YOUR APP KEY>";
 
-    private boolean mWantToConnect = false;
-
     private final P2pListener mP2pDiscoveryListener = new P2pListener() {
 
         @Override
@@ -104,13 +102,6 @@ public class MainActivity extends AppCompatActivity implements ColorPickerDialog
             if (mShouldStartServices) {
                 mShouldStartServices = false;
 
-                try {
-                    byte[] colorBytes = getColorBytes(mCurrentColor);
-                    KitClient.getInstance(MainActivity.this).getDiscoveryServices().setP2pDiscoveryInfo(colorBytes);
-                } catch (InfoTooLongException e) {
-                    logToView("P2pListener | The discovery info is too long");
-                }
-
                 startP2pDiscovery();
                 startGeoDiscovery();
             }
@@ -132,6 +123,7 @@ public class MainActivity extends AppCompatActivity implements ColorPickerDialog
     };
 
     private boolean mShouldStartServices;
+    private boolean mWantToConnect = false;
 
     private int mCurrentColor;
 
