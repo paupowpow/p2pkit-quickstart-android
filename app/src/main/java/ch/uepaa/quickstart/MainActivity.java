@@ -23,8 +23,77 @@ import ch.uepaa.p2pkit.messaging.MessageListener;
 
 public class MainActivity extends AppCompatActivity implements ColorPickerDialog.ColorPickerListener{
 
-    private static final String APP_KEY = "<YOUR APP KEY>";
+    private static final String APP_KEY = "<YOUR PERSONAL APP KEY>";
 
+    // Initialization (1/2) - Connect to the P2P Services
+    private void enableKit() {
+
+        final int statusCode = KitClient.isP2PServicesAvailable(this);
+        if (statusCode == ConnectionResult.SUCCESS) {
+            KitClient client = KitClient.getInstance(this);
+            client.registerConnectionCallbacks(mConnectionCallbacks);
+
+            if (client.isConnected()) {
+                logToView("Client already connected");
+            } else {
+                logToView("Connecting P2PKit client");
+                client.connect(APP_KEY);
+            }
+            mWantToConnect = false;
+        } else {
+            mWantToConnect = true;
+            logToView("Cannot start P2PKit, status code: " + statusCode);
+            ConnectionResultHandling.showAlertDialogForConnectionError(this, statusCode);
+        }
+    }
+
+    // Initialization (2/2) - Handle the connection status callbacks with the P2P Services
+    private final ConnectionCallbacks mConnectionCallbacks = new ConnectionCallbacks() {
+
+        @Override
+        public void onConnected() {
+            logToView("Successfully connected to P2P Services, with node id: " + KitClient.getInstance(MainActivity.this).getNodeId().toString());
+
+            mP2pSwitch.setEnabled(true);
+            mGeoSwitch.setEnabled(true);
+
+            if (mShouldStartServices) {
+                mShouldStartServices = false;
+
+                startP2pDiscovery();
+                startGeoDiscovery();
+            }
+        }
+
+        @Override
+        public void onConnectionSuspended() {
+            logToView("Connection to P2P Services suspended");
+
+            mGeoSwitch.setEnabled(false);
+            mP2pSwitch.setEnabled(false);
+        }
+
+        @Override
+        public void onConnectionFailed(ConnectionResult connectionResult) {
+            logToView("Connection to P2P Services failed with status: " + connectionResult.getStatusCode());
+            ConnectionResultHandling.showAlertDialogForConnectionError(MainActivity.this, connectionResult.getStatusCode());
+        }
+    };
+
+    private void disableKit() {
+        KitClient.getInstance(this).disconnect();
+    }
+
+    private void startP2pDiscovery() {
+        try {
+            KitClient.getInstance(this).getDiscoveryServices().setP2pDiscoveryInfo(getColorBytes(mCurrentColor));
+        } catch (InfoTooLongException e) {
+            logToView("P2pListener | The discovery info is too long");
+        }
+        KitClient.getInstance(this).getDiscoveryServices().addListener(mP2pDiscoveryListener);
+    }
+
+    // Listener of P2P discovery events
     private final P2pListener mP2pDiscoveryListener = new P2pListener() {
 
         @Override
@@ -55,6 +124,17 @@ public class MainActivity extends AppCompatActivity implements ColorPickerDialog
             }
         }
     };
+
+    private void stopP2pDiscovery() {
+        KitClient.getInstance(this).getDiscoveryServices().removeListener(mP2pDiscoveryListener);
+        logToView("P2pListener removed");
+    }
+
+    private void startGeoDiscovery() {
+        KitClient.getInstance(this).getMessageServices().addListener(mMessageListener);
+
+        KitClient.getInstance(this).getDiscoveryServices().addListener(mGeoDiscoveryListener);
+    }
 
     private final GeoListener mGeoDiscoveryListener = new GeoListener() {
 
@@ -90,37 +170,13 @@ public class MainActivity extends AppCompatActivity implements ColorPickerDialog
         }
     };
 
-    private final ConnectionCallbacks mConnectionCallbacks = new ConnectionCallbacks() {
+    private void stopGeoDiscovery() {
+        KitClient.getInstance(this).getMessageServices().removeListener(mMessageListener);
+        logToView("MessageListener removed");
 
-        @Override
-        public void onConnected() {
-            logToView("Successfully connected to P2P Services, with id: " + KitClient.getInstance(MainActivity.this).getNodeId().toString());
-
-            mP2pSwitch.setEnabled(true);
-            mGeoSwitch.setEnabled(true);
-
-            if (mShouldStartServices) {
-                mShouldStartServices = false;
-
-                startP2pDiscovery();
-                startGeoDiscovery();
-            }
-        }
-
-        @Override
-        public void onConnectionSuspended() {
-            logToView("Connection to P2P Services suspended");
-
-            mGeoSwitch.setEnabled(false);
-            mP2pSwitch.setEnabled(false);
-        }
-
-        @Override
-        public void onConnectionFailed(ConnectionResult connectionResult) {
-            logToView("Connection to P2P Services failed with status: " + connectionResult.getStatusCode());
-            ConnectionResultHandling.showAlertDialogForConnectionError(MainActivity.this, connectionResult.getStatusCode());
-        }
-    };
+        KitClient.getInstance(this).getDiscoveryServices().removeListener(mGeoDiscoveryListener);
+        logToView("GeoListener removed");
+    }
 
     private boolean mShouldStartServices;
     private boolean mWantToConnect = false;
@@ -130,16 +186,6 @@ public class MainActivity extends AppCompatActivity implements ColorPickerDialog
     private TextView mLogView;
     private Switch mP2pSwitch;
     private Switch mGeoSwitch;
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        setupUI();
-
-        mShouldStartServices = true;
-        showColorPickerDialog();
-    }
 
     @Override
     public void onColorPicked(int colorCode) {
@@ -155,6 +201,16 @@ public class MainActivity extends AppCompatActivity implements ColorPickerDialog
                 logToView("P2pListener | The discovery info is too long");
             }
         }
+    }
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        setupUI();
+
+        mShouldStartServices = true;
+        showColorPickerDialog();
     }
 
     @Override
@@ -224,59 +280,6 @@ public class MainActivity extends AppCompatActivity implements ColorPickerDialog
                 }
             }
         });
-    }
-
-    private void enableKit() {
-
-        final int statusCode = KitClient.isP2PServicesAvailable(this);
-        if (statusCode == ConnectionResult.SUCCESS) {
-            KitClient client = KitClient.getInstance(this);
-            client.registerConnectionCallbacks(mConnectionCallbacks);
-
-            if (client.isConnected()) {
-                logToView("Client already connected");
-            } else {
-                logToView("Connecting P2PKit client");
-                client.connect(APP_KEY);
-            }
-            mWantToConnect = false;
-        } else {
-            mWantToConnect = true;
-            logToView("Cannot start P2PKit, status code: " + statusCode);
-            ConnectionResultHandling.showAlertDialogForConnectionError(this, statusCode);
-        }
-    }
-
-    private void disableKit() {
-        KitClient.getInstance(this).disconnect();
-    }
-
-    private void startP2pDiscovery() {
-        try {
-            KitClient.getInstance(this).getDiscoveryServices().setP2pDiscoveryInfo(getColorBytes(mCurrentColor));
-        } catch (InfoTooLongException e) {
-            logToView("P2pListener | The discovery info is too long");
-        }
-        KitClient.getInstance(this).getDiscoveryServices().addListener(mP2pDiscoveryListener);
-    }
-
-    private void stopP2pDiscovery() {
-        KitClient.getInstance(this).getDiscoveryServices().removeListener(mP2pDiscoveryListener);
-        logToView("P2pListener removed");
-    }
-
-    private void startGeoDiscovery() {
-        KitClient.getInstance(this).getMessageServices().addListener(mMessageListener);
-
-        KitClient.getInstance(this).getDiscoveryServices().addListener(mGeoDiscoveryListener);
-    }
-
-    private void stopGeoDiscovery() {
-        KitClient.getInstance(this).getMessageServices().removeListener(mMessageListener);
-        logToView("MessageListener removed");
-
-        KitClient.getInstance(this).getDiscoveryServices().removeListener(mGeoDiscoveryListener);
-        logToView("GeoListener removed");
     }
 
     private void logToView(String message) {
