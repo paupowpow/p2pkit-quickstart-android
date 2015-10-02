@@ -25,7 +25,7 @@ p2pkit is an easy to use SDK that bundles together several proximity technologie
 
 ### How it works
 
-[![p2pkit - how it works](p2pkit-android-explained.jpg)](https://github.com/Uepaa-AG/p2pkit-quickstart-android)
+<img src="https://github.com/Uepaa-AG/p2pkit-quickstart-android/blob/master/p2pkit-android-explained.jpg" alt="how it works" width="600" height="359">
 
 The Android P2PKit library, called `KitClient`, is an API library. The functionality is provided by the P2P Services app available in the Android Play Store. This has the advantage that the users will benefit from any improvements made to P2P Services, without updating the app using P2PKit.
 The P2P Services are similar in their workings to the Google Play Services.
