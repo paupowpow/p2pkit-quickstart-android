@@ -10,12 +10,12 @@ p2pkit is an easy to use SDK that bundles together several proximity technologie
 **[Signup](#signup)**  
 **[Release notes](#release-notes)**  
 **[Setup Android Studio project](#setup-android-studio-project)**  
+**[Documentation](#documentation)**  
 **[Initialization](#initialization)**  
 **[P2P Discovery](#p2p-discovery)**  
 **[GEO Discovery (beta)](#geo-discovery-beta)**  
 **[Online Messaging (beta)](#online-messaging-beta)**  
 **[Content Provider API](#content-provider)**  
-**[Documentation](#documentation)**  
 **[p2pkit License](#p2pkit-license)**
 
 ### Get started video
@@ -56,6 +56,10 @@ dependencies {
   compile 'ch.uepaa.p2p:p2pkit-android:1.0.3'
 }
 ```
+
+## Documentation
+
+For detailed information about the api calls, please refer to the Javadoc documentation: http://p2pkit.io/javadoc/
 
 ### Initialization
 
@@ -236,10 +240,6 @@ cursor.close();
 ```
 
 For all available data columns please see the documentation for the 'PeersContract'.
-
-## Documentation
-
-For more details and further information, please refer to the Javadoc documentation: http://p2pkit.io/javadoc/
 
 ### p2pkit License
 
