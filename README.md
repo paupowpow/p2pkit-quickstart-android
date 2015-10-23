@@ -139,7 +139,7 @@ private final P2pListener mP2pDiscoveryListener = new P2pListener() {
 };
 ```
 
-Register the listener to get event updates and enable P2P Discovery.
+Register the listener to enable P2P Discovery and to get event updates. The Kitclient must be connected before the listeners can be added.
 
 ```java
 KitClient.getInstance(context).getDiscoveryServices().addListener(mP2pDiscoveryListener);
@@ -179,7 +179,7 @@ private final GeoListener mGeoDiscoveryListener = new GeoListener() {
 };
 ```
 
-Register the listener to receive event updates and to enable GEO Discovery.
+Register the listener to enable GEO Discovery and to receive event updates. The Kitclient must be connected before the listeners can be added.
 
 ```java
 KitClient.getInstance(context).getDiscoveryServices().addListener(mGeoDiscoveryListener);
