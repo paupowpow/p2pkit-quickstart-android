@@ -181,7 +181,7 @@ public class MainActivity extends AppCompatActivity implements ColorPickerDialog
     private boolean mShouldStartServices;
     private boolean mWantToConnect = false;
 
-    private int mCurrentColor;
+    private int mCurrentColor = -65536;
 
     private TextView mLogView;
     private Switch mP2pSwitch;
