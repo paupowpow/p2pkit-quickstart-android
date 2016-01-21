@@ -27,7 +27,7 @@ p2pkit is an easy to use SDK that bundles together several proximity technologie
 
 <img src="https://github.com/Uepaa-AG/p2pkit-quickstart-android/blob/master/p2pkit-android-explained.jpg" alt="how it works" width="600" height="359">
 
-The Android P2PKit library, called `KitClient`, is an API library. The functionality is provided by the P2P Services app available in the Android Play Store. This has the advantage that the users will benefit from any improvements made to P2P Services, without updating the app using P2PKit.
+The Android P2PKit library, called `P2PKitClient`, is an API library. The functionality is provided by the P2P Services app available in the Android Play Store. This has the advantage that the users will benefit from any improvements made to P2P Services, without updating the app using P2PKit.
 The P2P Services are similar in their workings to the Google Play Services.
 
 ### Signup
@@ -53,7 +53,7 @@ repositories {
 ...
 dependencies {
   ...
-  compile 'ch.uepaa.p2p:p2pkit-android:1.0.9'
+  compile 'ch.uepaa.p2p:p2pkit-android:1.1.0'
 }
 ```
 
@@ -61,46 +61,38 @@ dependencies {
 
 For detailed information about the api calls, please refer to the Javadoc documentation: http://p2pkit.io/javadoc/
 
-### Initialization
+### Enabling
 
-Register your `ConnectionCallbacks` and initialize the `KitClient` by calling `connect()` using your personal application key.
+Enable the `P2PKitClient` by calling `enableP2PKit()` using your `P2PKitStatusCallback` and your personal application key.
 
 ```java
-final int statusCode = KitClient.isP2PServicesAvailable(this);
-if (statusCode == ConnectionResult.SUCCESS) {
-    KitClient client = KitClient.getInstance(this);
-    client.registerConnectionCallbacks(mConnectionCallbacks);
-
-    if (client.isConnected()) {
-        Log.d(TAG, "Client already initialized");
-    } else {
-        Log.d(TAG, "Connecting P2PKit client");
-        client.connect(APP_KEY);
-    }
-
+final StatusResult result = P2PKitClient.isP2PServicesAvailable(this);
+if (result.getStatusCode() == StatusResult.SUCCESS) {
+    P2PKitClient client = P2PKitClient.getInstance(this);
+    client.enableP2PKit(mStatusCallback, APP_KEY);
 } else {
-    ConnectionResultHandling.showAlertDialogForConnectionError(this, statusCode);
+    StatusResultHandling.showAlertDialogForStatusError(this, result);
 }
 ```
 
-Implement `ConnectionCallbacks` to receive updates about your connection to the P2P Services. `onConnected()` is immediately called for every listener added, if `KitClient` is already connected.
+Implement `P2PKitStatusCallback` to receive updates about the status of the P2P Services. `onEnabled()` is immediately called for every listener added, if `P2PKitClient` is already enabled.
 
 
 ```java
-private final ConnectionCallbacks mConnectionCallbacks = new ConnectionCallbacks() {
+private final P2PKitStatusCallback mStatusCallback = new P2PKitStatusCallback() {
     @Override
-    public void onConnected() {
-        //ready to start discovery
+    public void onEnabled() {
+        // ready to start discovery
     }
 
     @Override
-    public void onConnectionSuspended() {
-        //p2pkit is now disconnected
+    public void onSuspended() {
+        // p2pkit is now suspended
     }
 
     @Override
-    public void onConnectionFailed(ConnectionResult connectionResult) {
-        //connection failed, handle connectionResult
+    public void onError(StatusResult statusResult) {
+        // enabling failed, handle statusResult
     }
 };
 ```
@@ -113,45 +105,45 @@ Using P2P Discovery nearby peers are discovered by P2P technologies only. Geo Di
 
 ### P2P Discovery
 
-Implement `P2pListener` to receive P2P discovery and update events.
+Implement `P2PListener` to receive P2P discovery and update events.
 
 ```java
-private final P2pListener mP2pDiscoveryListener = new P2pListener() {
+private final P2PListener mP2PDiscoveryListener = new P2PListener() {
     @Override
-    public void onStateChanged(final int state) {
-        Log.d(TAG, "P2pListener | State changed: " + state);
+    public void onP2PStateChanged(final int state) {
+        Log.d(TAG, "P2PListener | State changed: " + state);
     }
 
     @Override
     public void onPeerDiscovered(final Peer peer) {
-        Log.d(TAG, "P2pListener | Peer discovered: " + peer.getNodeId() + " with info: " + new String(peer.getDiscoveryInfo()));
+        Log.d(TAG, "P2PListener | Peer discovered: " + peer.getNodeId() + " with info: " + new String(peer.getDiscoveryInfo()));
     }
 
     @Override
     public void onPeerLost(final Peer peer) {
-        Log.d(TAG, "P2pListener | Peer lost: " + peer.getNodeId());
+        Log.d(TAG, "P2PListener | Peer lost: " + peer.getNodeId());
     }
 
     @Override
     public void onPeerUpdatedDiscoveryInfo(Peer peer) {
-        Log.d(TAG, "P2pListener | Peer updated: " + peer.getNodeId() + " with new info: " + new String(peer.getDiscoveryInfo()));
+        Log.d(TAG, "P2PListener | Peer updated: " + peer.getNodeId() + " with new info: " + new String(peer.getDiscoveryInfo()));
     }
 };
 ```
 
-Register the listener to enable P2P Discovery and to get event updates. The Kitclient must be connected before the listeners can be added.
+Register the listener to enable P2P Discovery and to get event updates. The P2PKitClient must be enabled before the listeners can be added.
 
 ```java
-KitClient.getInstance(context).getDiscoveryServices().addListener(mP2pDiscoveryListener);
+P2PKitClient.getInstance(context).getDiscoveryServices().addP2PListener(mP2PDiscoveryListener);
 ```
 
 Set or update the discovery info, that other peers will receive.
 
 ```java
 try {
-        KitClient.getInstance(this).getDiscoveryServices().setP2pDiscoveryInfo("Hello p2pkit".getBytes());
+        P2PKitClient.getInstance(this).getDiscoveryServices().setP2pDiscoveryInfo("Hello p2pkit".getBytes());
 } catch (InfoTooLongException e) {
-        logToView("P2pListener | The discovery info is too long");
+        logToView("P2PListener | The discovery info is too long");
 }
 ```
 Note that on a discovery event the discovery info can be omitted and will be delivered later by calling `onPeerUpdatedDiscoveryInfo(Peer peer)`. This depends on the technology used to discover the peer and the number of peers around.
@@ -163,7 +155,7 @@ Implement `GeoListener` to receive GEO discovery events.
 ```java
 private final GeoListener mGeoDiscoveryListener = new GeoListener() {
     @Override
-    public void onStateChanged(int state) {
+    public void onGeoStateChanged(int state) {
         Log.d(TAG, "GeoListener | State changed: " + state);
     }
 
@@ -179,10 +171,10 @@ private final GeoListener mGeoDiscoveryListener = new GeoListener() {
 };
 ```
 
-Register the listener to enable GEO Discovery and to receive event updates. The Kitclient must be connected before the listeners can be added.
+Register the listener to enable GEO Discovery and to receive event updates. The P2PKitClient must be enabled before the listeners can be added.
 
 ```java
-KitClient.getInstance(context).getDiscoveryServices().addListener(mGeoDiscoveryListener);
+P2PKitClient.getInstance(context).getDiscoveryServices().addGeoListener(mGeoDiscoveryListener);
 ```
 
 ### Online Messaging (beta)
@@ -192,7 +184,7 @@ Implement a `MessageListener` to receive messages from other peers
 ```java
 private final MessageListener mMessageListener = new MessageListener() {
     @Override
-    public void onStateChanged(int state) {
+    public void onMessageStateChanged(int state) {
         Log.d(TAG, "MessageListener | State changed: " + state);
     }
 
@@ -206,23 +198,24 @@ private final MessageListener mMessageListener = new MessageListener() {
 Register the listener to get updates/receive messages and enable Online Messaging.
 
 ```java
-KitClient.getInstance(context).getMessageServices().addListener(mMessageListener);
+P2PKitClient.getInstance(context).getMessageServices().addMessageListener(mMessageListener);
 ```
 
 You can send messages to previously discovered peers using the `MessageServices`.
 
 ```java
 // sending a message to the peer
-boolean forwarded = KitClient.getInstance(context).getMessageServices().sendMessage(nodeId, "text/plain", "Hello!".getBytes());
+boolean forwarded = P2PKitClient.getInstance(context).getMessageServices().sendMessage(nodeId, "text/plain", "Hello!".getBytes());
 ```
-Note that the KitClient needs to be connected and Online Messaging must be enabled on both peers in order to forward a message.
+Note that the P2PKitClient and Online Messaging need to be enabled on both peers in order to forward a message.
 
-### Content Provider
+### Content Provider (Deprecated)
+**Note: The content provider will be removed in one of the next releases.**
 
-When the KitClient is successfully connected, information about discovered peers (P2P and GEO) is available by querying the 'Peers ContentProvider'. This returns data about all currently visible and historically discovered peers, i.e. the current state of all discovered peers.
+When the P2PKitClient is enabled information about discovered peers (P2P and GEO) is available by querying the 'Peers ContentProvider'. This returns data about all currently visible and historically discovered peers, i.e. the current state of all discovered peers.
 
 ```java
-Uri peersContentUri = KitClient.getInstance(context).getPeerContentUri();
+Uri peersContentUri = P2PKitClient.getInstance(context).getPeerContentUri();
 ContentResolver contentResolver = context.getContentResolver();
 
 Cursor cursor = contentResolver.query(peersContentUri, null, null, null, null);
