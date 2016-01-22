@@ -76,7 +76,12 @@ public class MainActivity extends AppCompatActivity implements ColorPickerDialog
     };
 
     private void disableKit() {
-        P2PKitClient.getInstance(this).disableP2PKit();
+        P2PKitClient client = P2PKitClient.getInstance(this);
+        client.getDiscoveryServices().removeGeoListener(mGeoDiscoveryListener);
+        client.getDiscoveryServices().removeP2pListener(mP2pDiscoveryListener);
+        client.getMessageServices().removeMessageListener(mMessageListener);
+
+        client.disableP2PKit();
     }
 
     private void startP2pDiscovery() {
