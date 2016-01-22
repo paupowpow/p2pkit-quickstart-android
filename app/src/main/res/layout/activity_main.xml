@@ -78,7 +78,7 @@
             android:layout_height="wrap_content"
             android:text=""
             android:id="@+id/geoSwitch"
-            android:checked="true"
+            android:checked="false"
             android:layout_below="@+id/geoLabel"
             android:layout_centerHorizontal="true" />
     </RelativeLayout>

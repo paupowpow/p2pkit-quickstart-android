@@ -56,7 +56,6 @@ public class MainActivity extends AppCompatActivity implements ColorPickerDialog
                 mShouldStartServices = false;
 
                 startP2pDiscovery();
-                startGeoDiscovery();
             }
         }
 
