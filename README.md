@@ -53,7 +53,7 @@ repositories {
 ...
 dependencies {
   ...
-  compile 'ch.uepaa.p2p:p2pkit-android:1.1.0'
+  compile 'ch.uepaa.p2p:p2pkit-android:1.1.1'
 }
 ```
 
