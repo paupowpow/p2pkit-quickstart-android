@@ -4,6 +4,7 @@
 
 p2pkit is an easy to use SDK that bundles together several proximity technologies kung-fu style! With p2pkit apps immediately understand their proximity to nearby devices and users, 'verify' their identity, and exchange information with them.
 
+![p2pkit - proximity starts here](p2pkit-quickstart-android.png)
 
 ## Get Started
 
