@@ -1,15 +1,15 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 22
-    buildToolsVersion "22.0.1"
+    compileSdkVersion 23
+    buildToolsVersion "23.0.3"
 
     defaultConfig {
         applicationId "ch.uepaa.quickstart"
         minSdkVersion 16
-        targetSdkVersion 22
-        versionCode 3
-        versionName "1.0"
+        targetSdkVersion 23
+        versionCode 4
+        versionName "1.2"
     }
 
     buildTypes {
@@ -20,7 +20,14 @@ android {
 }
 
 dependencies {
-    compile 'com.android.support:appcompat-v7:22.2.1'
-    compile 'ch.uepaa.p2p:p2pkit-android:1.1.1'
+
+    // android
+    compile 'com.android.support:appcompat-v7:23.2.1'
+    compile 'com.android.support:design:23.2.1'
+
+    // libs
     compile 'com.larswerkman:HoloColorPicker:1.5'
+
+    // p2pkit
+    compile 'ch.uepaa.p2p:p2pkit-android:1.2.2'
 }

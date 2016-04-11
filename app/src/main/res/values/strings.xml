@@ -1,13 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">P2PKit-Quickstart</string>
-    <string name="p2p_kit">Enable\np2pkit</string>
-    <string name="p2p">P2P\nDiscovery</string>
-    <string name="geo">GEO\nDiscovery</string>
-    <string name="clear">Clear Log</string>
-    <string name="changeColor">Change Color</string>
-    <string name="chooseColor">Choose your color</string>
+    <string name="app_name">P2PKit</string>
+    <string name="console">Console</string>
+    <string name="console_kit">Enable\np2pkit</string>
+    <string name="console_p2p">P2P\nDiscovery</string>
+    <string name="console_geo">GEO\nDiscovery</string>
+    <string name="choose_color">Choose your color</string>
+    <string name="node_me">me</string>
     <string name="set">Set</string>
+    <string name="cancel">Cancel</string>
+    <string name="clear">Clear</string>
+    <string name="p2pkit_not_enabled">P2PKit is not enabled.</string>
 
 </resources>

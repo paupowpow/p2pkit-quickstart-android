@@ -1,13 +1,15 @@
 package ch.uepaa.quickstart;
 
-import android.graphics.Color;
+import android.app.Fragment;
+import android.app.FragmentTransaction;
 import android.os.Bundle;
+import android.support.design.widget.FloatingActionButton;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.text.format.DateFormat;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
-import android.widget.CompoundButton;
-import android.widget.Switch;
-import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.UUID;
 
@@ -19,25 +21,39 @@ import ch.uepaa.p2pkit.discovery.GeoListener;
 import ch.uepaa.p2pkit.discovery.InfoTooLongException;
 import ch.uepaa.p2pkit.discovery.P2PListener;
 import ch.uepaa.p2pkit.discovery.entity.Peer;
+import ch.uepaa.p2pkit.discovery.entity.ProximityStrength;
 import ch.uepaa.p2pkit.internal.messaging.MessageTooLargeException;
 import ch.uepaa.p2pkit.messaging.MessageListener;
+import ch.uepaa.quickstart.fragments.ColorPickerFragment;
+import ch.uepaa.quickstart.fragments.ConsoleFragment;
+import ch.uepaa.quickstart.graph.Graph;
+import ch.uepaa.quickstart.graph.GraphView;
+import ch.uepaa.quickstart.utils.ColorStorage;
+import ch.uepaa.quickstart.utils.Logger;
+import ch.uepaa.quickstart.utils.P2PKitEnabledCallback;
 
-public class MainActivity extends AppCompatActivity implements ColorPickerDialog.ColorPickerListener{
+public class MainActivity extends AppCompatActivity implements ConsoleFragment.ConsoleListener, ColorPickerFragment.ColorPickerListener {
 
     private static final String APP_KEY = "<YOUR PERSONAL APP KEY>";
 
     // Enabling (1/2) - Enable the P2P Services
-    private void enableKit() {
+    public void enableKit(final boolean startP2PDiscovery, P2PKitEnabledCallback p2PKitEnabledCallback) {
 
-        final StatusResult result = P2PKitClient.isP2PServicesAvailable(this);
+        mShouldStartP2PDiscovery = startP2PDiscovery;
+        mP2PKitEnabledCallback = p2PKitEnabledCallback;
+
+        StatusResult result = P2PKitClient.isP2PServicesAvailable(this);
         if (result.getStatusCode() == StatusResult.SUCCESS) {
+            Logger.i("P2PKitClient", "Enable P2PKit");
+
             P2PKitClient client = P2PKitClient.getInstance(this);
-            logToView("enabling P2PKit");
             client.enableP2PKit(mStatusCallback, APP_KEY);
             mWantToEnable = false;
+
         } else {
+            Logger.w("P2PKitClient", "Cannot start P2PKit, status code: " + result.getStatusCode());
+
             mWantToEnable = true;
-            logToView("Cannot start P2PKit, status code: " + result.getStatusCode());
             StatusResultHandling.showAlertDialogForStatusError(this, result);
         }
     }
@@ -47,13 +63,15 @@ public class MainActivity extends AppCompatActivity implements ColorPickerDialog
 
         @Override
         public void onEnabled() {
-            logToView("Successfully enabled P2P Services, with node id: " + P2PKitClient.getInstance(MainActivity.this).getNodeId().toString());
+            Logger.v("P2PKitStatusCallback", "Successfully enabled P2P Services, with node id: " + P2PKitClient.getInstance(MainActivity.this).getNodeId().toString());
 
-            mP2pSwitch.setEnabled(true);
-            mGeoSwitch.setEnabled(true);
+            UUID ownNodeId = P2PKitClient.getInstance(MainActivity.this).getNodeId();
+            setupPeers(ownNodeId);
+            if (mP2PKitEnabledCallback != null) {
+                mP2PKitEnabledCallback.onEnabled();
+            }
 
-            if (mShouldStartServices) {
-                mShouldStartServices = false;
+            if (mShouldStartP2PDiscovery) {
 
                 startP2pDiscovery();
             }
@@ -61,35 +79,62 @@ public class MainActivity extends AppCompatActivity implements ColorPickerDialog
 
         @Override
         public void onSuspended() {
-            logToView("P2P Services suspended");
+            Logger.v("P2PKitStatusCallback", "P2P Services suspended");
+        }
 
-            mGeoSwitch.setEnabled(false);
-            mP2pSwitch.setEnabled(false);
+        @Override
+        public void onResumed() {
+            Logger.v("P2PKitStatusCallback", "P2P Services resumed");
+        }
+
+        @Override
+        public void onDisabled() {
+            Logger.v("P2PKitStatusCallback", "P2P Services disabled");
         }
 
         @Override
         public void onError(StatusResult statusResult) {
-            logToView("Error in P2P Services with status: " + statusResult.getStatusCode());
+            Logger.e("P2PKitStatusCallback", "Error in P2P Services with status: " + statusResult.getStatusCode());
             StatusResultHandling.showAlertDialogForStatusError(MainActivity.this, statusResult);
         }
     };
 
-    private void disableKit() {
+    public void disableKit() {
+        Logger.i("P2PKitClient", "Disable P2PKit");
+
         P2PKitClient client = P2PKitClient.getInstance(this);
         client.getDiscoveryServices().removeGeoListener(mGeoDiscoveryListener);
         client.getDiscoveryServices().removeP2pListener(mP2pDiscoveryListener);
         client.getMessageServices().removeMessageListener(mMessageListener);
 
         client.disableP2PKit();
+
+        mWantToEnable = false;
+        mShouldStartP2PDiscovery = false;
+
+        mP2PServiceStarted = false;
+        mGeoServiceStarted = false;
+
+        teardownPeers();
     }
 
-    private void startP2pDiscovery() {
-        try {
-            P2PKitClient.getInstance(this).getDiscoveryServices().setP2pDiscoveryInfo(getColorBytes(mCurrentColor));
-        } catch (InfoTooLongException e) {
-            logToView("P2pListener | The discovery info is too long");
-        }
+    public void startP2pDiscovery() {
+        Logger.i("P2PKitClient", "Start discovery");
+        mP2PServiceStarted = true;
+
+        byte[] ownDiscoveryData = loadOwnDiscoveryData();
+        publishP2pDiscoveryInfo(ownDiscoveryData);
+
         P2PKitClient.getInstance(this).getDiscoveryServices().addP2pListener(mP2pDiscoveryListener);
+    }
+
+    private void publishP2pDiscoveryInfo(byte[] data) {
+        Logger.i("P2PKitClient", "Publish discovery info");
+        try {
+            P2PKitClient.getInstance(this).getDiscoveryServices().setP2pDiscoveryInfo(data);
+        } catch (InfoTooLongException e) {
+            Logger.e("P2PKitClient", "The discovery info is too long: " + ((data != null) ? data.length : "null") + " bytes");
+        }
     }
 
     // Listener of P2P discovery events
@@ -97,41 +142,54 @@ public class MainActivity extends AppCompatActivity implements ColorPickerDialog
 
         @Override
         public void onP2PStateChanged(final int state) {
-            logToView("P2pListener | State changed: " + state);
+            Logger.v("P2PListener", "State changed: " + state);
         }
 
         @Override
         public void onPeerDiscovered(final Peer peer) {
-            byte[] colorBytes = peer.getDiscoveryInfo();
-            if (colorBytes != null && colorBytes.length == 3) {
-                logToView("P2pListener | Peer discovered: " + peer.getNodeId() + " with color: " + getHexRepresentation(colorBytes));
-            } else {
-                logToView("P2pListener | Peer discovered: " + peer.getNodeId() + " without color");
+            if (peer.getProximityStrength() == ProximityStrength.WIFI_PEER){
+                Logger.v("P2PListener", "WIFI Peer discovered: " + peer.getNodeId() + ".");
+            }else{
+                Logger.v("P2PListener", "Peer discovered: " + peer.getNodeId() + ". Proximity strength: " + peer.getProximityStrength());
             }
+
+            handlePeerDiscovered(peer);
         }
 
         @Override
         public void onPeerLost(final Peer peer) {
-            logToView("P2pListener | Peer lost: " + peer.getNodeId());
+            Logger.v("P2PListener", "Peer lost: " + peer.getNodeId());
+
+            handlePeerLost(peer);
         }
 
         @Override
         public void onPeerUpdatedDiscoveryInfo(Peer peer) {
-            byte[] colorBytes = peer.getDiscoveryInfo();
-            if (colorBytes != null && colorBytes.length == 3) {
-                logToView("P2pListener | Peer updated: " + peer.getNodeId() + " with new color: " + getHexRepresentation(colorBytes));
-            }
+            Logger.v("P2PListener", "Peer updated discovery info: " + peer.getNodeId());
+
+            handlePeerUpdatedDiscoveryInfo(peer);
+        }
+
+        @Override
+        public void onProximityStrengthChanged(Peer peer) {
+            Logger.v("P2PListener", "Peer changed proximity strength: " + peer.getNodeId() + ". Proximity strength: " + peer.getProximityStrength());
+            handlePeerChangedProximityStrength(peer);
         }
     };
 
-    private void stopP2pDiscovery() {
+    public void stopP2pDiscovery() {
+        Logger.i("P2PKitClient", "Stop discovery");
+
         P2PKitClient.getInstance(this).getDiscoveryServices().removeP2pListener(mP2pDiscoveryListener);
-        logToView("P2pListener removed");
+
+        mP2PServiceStarted = false;
     }
 
-    private void startGeoDiscovery() {
-        P2PKitClient.getInstance(this).getMessageServices().addMessageListener(mMessageListener);
+    public void startGeoDiscovery() {
+        Logger.i("P2PKitClient", "Start geo discovery");
+        mGeoServiceStarted = true;
 
+        P2PKitClient.getInstance(this).getMessageServices().addMessageListener(mMessageListener);
         P2PKitClient.getInstance(this).getDiscoveryServices().addGeoListener(mGeoDiscoveryListener);
     }
 
@@ -139,24 +197,24 @@ public class MainActivity extends AppCompatActivity implements ColorPickerDialog
 
         @Override
         public void onGeoStateChanged(final int state) {
-            logToView("GeoListener | State changed: " + state);
+            Logger.v("GeoListener", "State changed: " + state);
         }
 
         @Override
         public void onPeerDiscovered(final UUID nodeId) {
-            logToView("GeoListener | Peer discovered: " + nodeId);
+            Logger.v("GeoListener", "Peer discovered: " + nodeId);
 
             // sending a message to the peer
             try {
                 P2PKitClient.getInstance(MainActivity.this).getMessageServices().sendMessage(nodeId, "SimpleChatMessage", "From Android: Hello GEO!".getBytes());
             } catch (MessageTooLargeException e) {
-                logToView("GeoListener | " + e.getMessage());
+                Logger.e("GeoListener", "error: " + e.getMessage());
             }
         }
 
         @Override
         public void onPeerLost(final UUID nodeId) {
-            logToView("GeoListener | Peer lost: " + nodeId);
+            Logger.v("GeoListener", "Peer lost: " + nodeId);
         }
     };
 
@@ -164,147 +222,221 @@ public class MainActivity extends AppCompatActivity implements ColorPickerDialog
 
         @Override
         public void onMessageStateChanged(final int state) {
-            logToView("MessageListener | State changed: " + state);
+            Logger.v("MessageListener", "State changed: " + state);
         }
 
         @Override
         public void onMessageReceived(final long timestamp, final UUID origin, final String type, final byte[] message) {
-            logToView("MessageListener | Message received: From=" + origin + " type=" + type + " message=" + new String(message));
+            Logger.v("MessageListener", "MessageListener | Message received: From=" + origin + " type=" + type + " message=" + new String(message));
         }
     };
 
-    private void stopGeoDiscovery() {
+    public void stopGeoDiscovery() {
+        Logger.i("P2PKitClient", "Stop geo discovery");
+
         P2PKitClient.getInstance(this).getMessageServices().removeMessageListener(mMessageListener);
-        logToView("MessageListener removed");
-
         P2PKitClient.getInstance(this).getDiscoveryServices().removeGeoListener(mGeoDiscoveryListener);
-        logToView("GeoListener removed");
+
+        mGeoServiceStarted = false;
     }
 
-    private boolean mShouldStartServices;
-    private boolean mWantToEnable = false;
+    private boolean mWantToEnable;
+    private boolean mShouldStartP2PDiscovery;
+    private P2PKitEnabledCallback mP2PKitEnabledCallback;
+    private boolean mP2PServiceStarted;
+    private boolean mGeoServiceStarted;
 
-    private int mCurrentColor = -65536;
+    private ColorStorage storage;
+    private int defaultColor;
 
-    private TextView mLogView;
-    private Switch mP2pSwitch;
-    private Switch mGeoSwitch;
-
-    @Override
-    public void onColorPicked(int colorCode) {
-        mCurrentColor = colorCode;
-
-        if (mShouldStartServices) {
-            enableKit();
-        } else if (P2PKitClient.getInstance(this).isEnabled()) {
-            try {
-                byte[] colorBytes = getColorBytes(mCurrentColor);
-                P2PKitClient.getInstance(this).getDiscoveryServices().setP2pDiscoveryInfo(colorBytes);
-            } catch (InfoTooLongException e) {
-                logToView("P2pListener | The discovery info is too long");
-            }
-        }
-    }
+    private GraphView graphView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        setupUI();
 
-        mShouldStartServices = true;
-        showColorPickerDialog();
+        setContentView(R.layout.main_activity);
+
+        mWantToEnable = false;
+        mShouldStartP2PDiscovery = false;
+
+        mP2PServiceStarted = false;
+        mGeoServiceStarted = false;
+
+        defaultColor = ContextCompat.getColor(this, R.color.graph_node);
+        storage = new ColorStorage(this);
+
+        graphView = (GraphView) findViewById(R.id.graph);
+
+        FloatingActionButton colorActionButton = (FloatingActionButton) findViewById(R.id.color_action);
+        if (colorActionButton != null) {
+            colorActionButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    showColorPicker();
+                }
+            });
+        }
+
+        enableKit(true, null);
+
     }
 
     @Override
     public void onResume() {
         super.onResume();
 
-        // When to user comes back from playstore after installing p2p services, try to enable p2pkit again
-        if(mWantToEnable && !P2PKitClient.getInstance(this).isEnabled()) {
-            enableKit();
+        // When the user comes back from the play store after installing p2p services, try to enable p2pkit again
+        if (mWantToEnable && !P2PKitClient.getInstance(this).isEnabled()) {
+            enableKit(true, null);
         }
     }
 
-    private void setupUI() {
-        mLogView = (TextView) findViewById(R.id.textView);
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
 
-        findViewById(R.id.clearTextView).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                clearLogs();
+        disableKit();
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_console: {
+                showConsole();
+                return true;
             }
-        });
+        }
 
-        findViewById(R.id.changeColorTextView).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showColorPickerDialog();
-            }
-        });
-
-        Switch kitSwitch = (Switch) findViewById(R.id.kitSwitch);
-        kitSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-
-                if (isChecked) {
-                    enableKit();
-                } else {
-                    mP2pSwitch.setChecked(false);
-                    mGeoSwitch.setChecked(false);
-
-                    mWantToEnable = false;
-                    disableKit();
-                }
-            }
-        });
-
-        mP2pSwitch = (Switch) findViewById(R.id.p2pSwitch);
-        mP2pSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (isChecked) {
-                    startP2pDiscovery();
-                } else {
-                    stopP2pDiscovery();
-                }
-            }
-        });
-
-        mGeoSwitch = (Switch) findViewById(R.id.geoSwitch);
-        mGeoSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (isChecked) {
-                    startGeoDiscovery();
-                } else {
-                    stopGeoDiscovery();
-                }
-            }
-        });
+        return super.onOptionsItemSelected(item);
     }
 
-    private void logToView(String message) {
-        CharSequence currentTime = DateFormat.format("hh:mm:ss - ", System.currentTimeMillis());
-        mLogView.setText(currentTime + message + "\n" + mLogView.getText());
+    private void setupPeers(final UUID ownNodeId) {
+
+        byte[] ownDiscoveryData = loadOwnDiscoveryData();
+        int ownColor = ColorStorage.getColorCode(ownDiscoveryData, ColorStorage.createRandomColor());
+        if (ownDiscoveryData == null) {
+            storage.saveColor(ownColor);
+            updateOwnDiscoveryInfo();
+        }
+
+        Graph graph = graphView.getGraph();
+        graph.setup(ownNodeId);
+        graph.addNode(ownNodeId);
+        graph.setNodeColor(ownNodeId, ownColor);
     }
 
-    private void clearLogs() {
-        mLogView.setText("");
+    private void handlePeerDiscovered(final Peer peer) {
+
+        UUID peerId = peer.getNodeId();
+        byte[] peerDiscoveryInfo = peer.getDiscoveryInfo();
+        int peerColor = ColorStorage.getColorCode(peerDiscoveryInfo, defaultColor);
+        float proximityStrength = (peer.getProximityStrength() - 1f) / 4;
+        boolean proximityStrengthImmediate = peer.getProximityStrength() == ProximityStrength.IMMEDIATE;
+
+        Graph graph = graphView.getGraph();
+        graph.addNode(peerId);
+        graph.setNodeColor(peerId, peerColor);
+        graph.setEdgeStrength(peerId, proximityStrength);
+        graph.setHighlighted(peerId, proximityStrengthImmediate);
     }
 
-    private String getHexRepresentation(byte[] colorBytes) {
-        int colorCode = Color.rgb(colorBytes[0] & 0xFF, colorBytes[1] & 0xFF, colorBytes[2] & 0xFF);
-        return String.format("#%06X", (0xFFFFFF & colorCode));
+    private void handlePeerLost(final Peer peer) {
+
+        UUID peerId = peer.getNodeId();
+
+        Graph graph = graphView.getGraph();
+        graph.removeNode(peerId);
+        graph.updateOwnNode();
     }
 
-    private byte[] getColorBytes(int color) {
-        return new byte[] {(byte) Color.red(color), (byte) Color.green(color), (byte) Color.blue(color)};
+    private void handlePeerUpdatedDiscoveryInfo(final Peer peer) {
+
+        UUID peerId = peer.getNodeId();
+        byte[] peerDiscoveryInfo = peer.getDiscoveryInfo();
+
+        int peerColor = ColorStorage.getColorCode(peerDiscoveryInfo, defaultColor);
+
+        Graph graph = graphView.getGraph();
+        graph.setNodeColor(peerId, peerColor);
     }
 
-    private void showColorPickerDialog() {
-        ColorPickerDialog dialog = ColorPickerDialog.newInstance(mCurrentColor);
-        dialog.show(getFragmentManager(), "ColorPicker");
+    private void handlePeerChangedProximityStrength(final Peer peer) {
+
+        UUID peerId = peer.getNodeId();
+        float proximityStrength = (peer.getProximityStrength() - 1f) / 4;
+        boolean proximityStrengthImmediate = peer.getProximityStrength() == ProximityStrength.IMMEDIATE;
+
+        Graph graph = graphView.getGraph();
+        graph.setEdgeStrength(peerId, proximityStrength);
+        graph.setHighlighted(peerId, proximityStrengthImmediate);
     }
+
+    private void updateOwnDiscoveryInfo() {
+
+        P2PKitClient client = P2PKitClient.getInstance(MainActivity.this);
+        if (!client.isEnabled()) {
+            Toast.makeText(this, R.string.p2pkit_not_enabled, Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        UUID ownNodeId = client.getNodeId();
+        byte[] ownDiscoveryData = loadOwnDiscoveryData();
+        int ownColor = ColorStorage.getColorCode(ownDiscoveryData, defaultColor);
+
+        publishP2pDiscoveryInfo(ownDiscoveryData);
+
+        Graph graph = graphView.getGraph();
+        graph.setNodeColor(ownNodeId, ownColor);
+    }
+
+    private byte[] loadOwnDiscoveryData() {
+        return storage.loadColor();
+    }
+
+    private void teardownPeers() {
+
+        Graph graph = graphView.getGraph();
+        graph.reset();
+    }
+
+    private void showColorPicker() {
+
+        byte[] colorData = storage.loadColor();
+        int colorCode = ColorStorage.getColorCode(colorData, defaultColor);
+
+        ColorPickerFragment fragment = ColorPickerFragment.newInstance(colorCode);
+        fragment.show(getFragmentManager(), ColorPickerFragment.FRAGMENT_TAG);
+    }
+
+    @Override
+    public void onColorPicked(int colorCode) {
+
+        storage.saveColor(colorCode);
+
+        updateOwnDiscoveryInfo();
+    }
+
+    private void showConsole() {
+
+        P2PKitClient client = P2PKitClient.getInstance(this);
+        boolean kitEnabled = client.isEnabled();
+
+        FragmentTransaction ft = getFragmentManager().beginTransaction();
+        Fragment prev = getFragmentManager().findFragmentByTag(ConsoleFragment.FRAGMENT_TAG);
+        if (prev != null) {
+            ft.remove(prev);
+        }
+        ft.addToBackStack(null);
+
+        ConsoleFragment fragment = ConsoleFragment.newInstance(kitEnabled, mP2PServiceStarted, mGeoServiceStarted);
+        fragment.show(ft, ConsoleFragment.FRAGMENT_TAG);
+    }
+
 }
