@@ -48,12 +48,12 @@ public class MainActivity extends AppCompatActivity implements ConsoleFragment.C
 
             P2PKitClient client = P2PKitClient.getInstance(this);
             client.enableP2PKit(mStatusCallback, APP_KEY);
-            mWantToEnable = false;
+            mShouldEnable = false;
 
         } else {
             Logger.w("P2PKitClient", "Cannot start P2PKit, status code: " + result.getStatusCode());
 
-            mWantToEnable = true;
+            mShouldEnable = true;
             StatusResultHandling.showAlertDialogForStatusError(this, result);
         }
     }
@@ -109,7 +109,7 @@ public class MainActivity extends AppCompatActivity implements ConsoleFragment.C
 
         client.disableP2PKit();
 
-        mWantToEnable = false;
+        mShouldEnable = false;
         mShouldStartP2PDiscovery = false;
 
         mP2PServiceStarted = false;
@@ -240,7 +240,7 @@ public class MainActivity extends AppCompatActivity implements ConsoleFragment.C
         mGeoServiceStarted = false;
     }
 
-    private boolean mWantToEnable;
+    private boolean mShouldEnable;
     private boolean mShouldStartP2PDiscovery;
     private P2PKitEnabledCallback mP2PKitEnabledCallback;
     private boolean mP2PServiceStarted;
@@ -257,7 +257,7 @@ public class MainActivity extends AppCompatActivity implements ConsoleFragment.C
 
         setContentView(R.layout.main_activity);
 
-        mWantToEnable = false;
+        mShouldEnable = true;
         mShouldStartP2PDiscovery = false;
 
         mP2PServiceStarted = false;
@@ -277,9 +277,6 @@ public class MainActivity extends AppCompatActivity implements ConsoleFragment.C
                 }
             });
         }
-
-        enableKit(true, null);
-
     }
 
     @Override
@@ -287,7 +284,7 @@ public class MainActivity extends AppCompatActivity implements ConsoleFragment.C
         super.onResume();
 
         // When the user comes back from the play store after installing p2p services, try to enable p2pkit again
-        if (mWantToEnable && !P2PKitClient.getInstance(this).isEnabled()) {
+        if (mShouldEnable && !P2PKitClient.getInstance(this).isEnabled()) {
             enableKit(true, null);
         }
     }
