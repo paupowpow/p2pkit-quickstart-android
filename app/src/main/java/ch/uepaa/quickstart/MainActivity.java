@@ -90,6 +90,8 @@ public class MainActivity extends AppCompatActivity implements ConsoleFragment.C
         @Override
         public void onDisabled() {
             Logger.v("P2PKitStatusCallback", "P2P Services disabled");
+
+            teardownPeers();
         }
 
         @Override
@@ -114,8 +116,6 @@ public class MainActivity extends AppCompatActivity implements ConsoleFragment.C
 
         mP2PServiceStarted = false;
         mGeoServiceStarted = false;
-
-        teardownPeers();
     }
 
     public void startP2pDiscovery() {
