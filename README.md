@@ -8,14 +8,18 @@ p2pkit is an easy to use SDK that bundles together several proximity technologie
 
 ## Get Started
 
-1. In order to use p2pkit you need an application key, you can obtain one here:
-[Get your Application Key](http://p2pkit.io/signup.html)
+1. Using p2pkit requires an application key, start by creating a p2pkit account here:
+[Create p2pkit account](http://p2pkit.io/signup.html)
 
-2. Head to the MainActivity.java file and replace ``<YOUR APPLICATION KEY>`` with your new key:
+2. Once you have an account you can log-in to the console and create an application key: [Create your Application Key](https://p2pkit-console.uepaa.ch/login)
 
-```
-private static final String APP_KEY = "<YOUR PERSONAL APP KEY>";
-```
+  NOTE: p2pkit validates bundleID/package_name so don't forget to add ``ch.uepaa.quickstart`` to the known BundleID/package_names when creating your application key
+
+3. Head to the MainActivity.java file and replace ``<YOUR APPLICATION KEY>`` with your new key:
+
+  ```
+  private static final String APP_KEY = "<YOUR PERSONAL APP KEY>";
+  ```
 
 > In general, a tutorial as well as all other documentation is available on the developer section of our website:
 [http://p2pkit.io/developer](http://p2pkit.io/developer)
