@@ -12,6 +12,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
 
+import java.util.Arrays;
 import java.util.UUID;
 
 import ch.uepaa.p2pkit.P2PKitClient;
@@ -153,7 +154,13 @@ public class MainActivity extends AppCompatActivity implements ConsoleFragment.C
             if (peer.getProximityStrength() == ProximityStrength.WIFI_PEER){
                 Logger.v("P2PListener", "WIFI Peer discovered: " + peer.getNodeId() + ".");
             }else{
-                Logger.v("P2PListener", "Peer discovered: " + peer.getNodeId() + ". Proximity strength: " + peer.getProximityStrength());
+                byte[] helloArray = peer.getDiscoveryInfo();
+                if (helloArray != null) {
+                    String s = new String(helloArray);
+                    Logger.v("P2PListener", "Peer discovered: " + peer.getNodeId() + ". Proximity strength: " + peer.getProximityStrength() + ". Message: " + s);
+                } else {
+                    Logger.v("P2PListener", "Peer discovered: " + peer.getNodeId() + ". Proximity strength: " + peer.getProximityStrength());
+                }
             }
 
             handlePeerDiscovered(peer);
@@ -168,9 +175,28 @@ public class MainActivity extends AppCompatActivity implements ConsoleFragment.C
 
         @Override
         public void onPeerUpdatedDiscoveryInfo(Peer peer) {
-            Logger.v("P2PListener", "Peer updated discovery info: " + peer.getNodeId());
+            Log.d(TAG, "onPeerUpdatedDiscoveryInfo()");
+
+            String s = new String();
+
+            byte[] discInfo = peer.getDiscoveryInfo();
+            if (discInfo != null) {
+                s = Arrays.toString(discInfo);
+            }
+
+            Log.d(TAG, "discInfo before handlePeerUpdatedDiscoveryInfo()" + s);
+
+            Logger.v("P2PListener", "Peer updated discovery info: " + peer.getNodeId() + ". Peer info: " + s);
 
             handlePeerUpdatedDiscoveryInfo(peer);
+
+            discInfo = peer.getDiscoveryInfo();
+            if (discInfo != null) {
+                s = Arrays.toString(discInfo);
+            }
+            Log.d(TAG, "discInfo after handlePeerUpdatedDiscoveryInfo()" + s);
+
+
         }
 
         @Override
@@ -399,6 +425,7 @@ public class MainActivity extends AppCompatActivity implements ConsoleFragment.C
     }
 
     private byte[] loadOwnDiscoveryData() {
+        Log.d(TAG, "loadOwnDiscoveryData()");
         return storage.loadColor();
     }
 
@@ -409,7 +436,7 @@ public class MainActivity extends AppCompatActivity implements ConsoleFragment.C
     }
 
     private void showColorPicker() {
-
+        Log.d(TAG, "showColorPicker()");
         byte[] colorData = storage.loadColor();
         int colorCode = ColorStorage.getColorCode(colorData, defaultColor);
 
