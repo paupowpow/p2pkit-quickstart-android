@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -35,6 +36,8 @@ import ch.uepaa.quickstart.utils.P2PKitEnabledCallback;
 public class MainActivity extends AppCompatActivity implements ConsoleFragment.ConsoleListener, ColorPickerFragment.ColorPickerListener {
 
     private static final String APP_KEY = "<YOUR PERSONAL APP KEY>";
+
+    private static final String TAG = "myTag MainActivity";
 
     // Enabling (1/2) - Enable the P2P Services
     public void enableKit(final boolean startP2PDiscovery, P2PKitEnabledCallback p2PKitEnabledCallback) {
@@ -315,10 +318,11 @@ public class MainActivity extends AppCompatActivity implements ConsoleFragment.C
     }
 
     private void setupPeers(final UUID ownNodeId) {
-
+        Log.d(TAG, "setupPeers()");
         byte[] ownDiscoveryData = loadOwnDiscoveryData();
         int ownColor = ColorStorage.getColorCode(ownDiscoveryData, ColorStorage.createRandomColor());
         if (ownDiscoveryData == null) {
+            Log.d(TAG, "ownDiscoveryData == null");
             storage.saveColor(ownColor);
             updateOwnDiscoveryInfo();
         }
@@ -354,7 +358,7 @@ public class MainActivity extends AppCompatActivity implements ConsoleFragment.C
     }
 
     private void handlePeerUpdatedDiscoveryInfo(final Peer peer) {
-
+        Log.d(TAG, "handlePeerUpdatedDiscoveryInfo()");
         UUID peerId = peer.getNodeId();
         byte[] peerDiscoveryInfo = peer.getDiscoveryInfo();
 
@@ -376,6 +380,7 @@ public class MainActivity extends AppCompatActivity implements ConsoleFragment.C
     }
 
     private void updateOwnDiscoveryInfo() {
+        Log.d(TAG, "updateOwnDiscoveryInfo()");
 
         P2PKitClient client = P2PKitClient.getInstance(MainActivity.this);
         if (!client.isEnabled()) {

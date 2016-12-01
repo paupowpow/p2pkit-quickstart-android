@@ -44,6 +44,8 @@ import ch.uepaa.quickstart.utils.DroidUtils;
 public class Graph {
 
     private final String TAG = "Graph";
+    private final String TAG2 = "myTag Graph";
+
 
     private int width;
     private int height;
@@ -171,6 +173,7 @@ public class Graph {
     }
 
     public void setNodeColor(final UUID id, final int colorCode) {
+        Log.d(TAG2, "setNodeColor()");
         Log.v(TAG, "setNodeColor | id = " + id);
 
         GraphNode node = findNodeById(id);
