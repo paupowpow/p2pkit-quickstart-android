@@ -28,3 +28,7 @@ proguard/
 
 .idea
 *.iml
+
+app/src/main/java/ch/uepaa/quickstart/config/
+.DS_Store
+
