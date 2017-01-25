@@ -19,9 +19,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.util.Base64;
-import android.util.Log;
 
-import java.io.UnsupportedEncodingException;
 import java.util.Random;
 
 /**
@@ -31,8 +29,6 @@ import java.util.Random;
 public class ColorStorage {
 
     private final String COLOR_KEY = "COLOR_KEY";
-
-    private static final String TAG = "myTag ColorStorage";
 
     private final SharedPreferences prefs;
 
@@ -51,32 +47,20 @@ public class ColorStorage {
     }
 
     public synchronized byte[] loadColor() {
-        Log.d(TAG, "loadColor()");
 
-        //byte[] data = null;
-
-        String stringMessage = "abcdefghi abcdefghi abcdefghi abcdefghi abcdefghi abcdefghi abcdefghi abcdefghi abcdefghi abcdefghi abcdefghi abcdefghi abcdefghi abcdefghi ";
-        byte[] data = new byte[0];
-
-        try {
-            data = stringMessage.getBytes("UTF-8");
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
+        byte[] data = null;
 
         if (prefs.contains(COLOR_KEY)) {
-            //String encoded = prefs.getString(COLOR_KEY, "");
-            String encoded = Base64.encodeToString(data, Base64.DEFAULT);
+            String encoded = prefs.getString(COLOR_KEY, "");
             if (encoded.length() > 0) {
                 data = Base64.decode(encoded, Base64.DEFAULT);
             }
         }
 
-        if (data != null && data.length == 140) {
-            Log.d(TAG,"data == 140 and is returned");
+        if (data != null && data.length == 3) {
             return data;
         }
-        Log.d(TAG, "data == null and is returned");
+
         return null;
     }
 

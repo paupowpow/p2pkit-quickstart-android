@@ -6,13 +6,11 @@ import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
 
-import java.util.Arrays;
 import java.util.UUID;
 
 import ch.uepaa.p2pkit.P2PKitClient;
@@ -26,6 +24,7 @@ import ch.uepaa.p2pkit.discovery.entity.Peer;
 import ch.uepaa.p2pkit.discovery.entity.ProximityStrength;
 import ch.uepaa.p2pkit.internal.messaging.MessageTooLargeException;
 import ch.uepaa.p2pkit.messaging.MessageListener;
+import ch.uepaa.quickstart.config.Config;
 import ch.uepaa.quickstart.fragments.ColorPickerFragment;
 import ch.uepaa.quickstart.fragments.ConsoleFragment;
 import ch.uepaa.quickstart.graph.Graph;
@@ -36,9 +35,7 @@ import ch.uepaa.quickstart.utils.P2PKitEnabledCallback;
 
 public class MainActivity extends AppCompatActivity implements ConsoleFragment.ConsoleListener, ColorPickerFragment.ColorPickerListener {
 
-    private static final String APP_KEY = "<YOUR PERSONAL APP KEY>";
-
-    private static final String TAG = "myTag MainActivity";
+    private static final String APP_KEY = Config.APP_KEY;
 
     // Enabling (1/2) - Enable the P2P Services
     public void enableKit(final boolean startP2PDiscovery, P2PKitEnabledCallback p2PKitEnabledCallback) {
@@ -154,13 +151,7 @@ public class MainActivity extends AppCompatActivity implements ConsoleFragment.C
             if (peer.getProximityStrength() == ProximityStrength.WIFI_PEER){
                 Logger.v("P2PListener", "WIFI Peer discovered: " + peer.getNodeId() + ".");
             }else{
-                byte[] helloArray = peer.getDiscoveryInfo();
-                if (helloArray != null) {
-                    String s = new String(helloArray);
-                    Logger.v("P2PListener", "Peer discovered: " + peer.getNodeId() + ". Proximity strength: " + peer.getProximityStrength() + ". Message: " + s);
-                } else {
-                    Logger.v("P2PListener", "Peer discovered: " + peer.getNodeId() + ". Proximity strength: " + peer.getProximityStrength());
-                }
+                Logger.v("P2PListener", "Peer discovered: " + peer.getNodeId() + ". Proximity strength: " + peer.getProximityStrength());
             }
 
             handlePeerDiscovered(peer);
@@ -175,28 +166,9 @@ public class MainActivity extends AppCompatActivity implements ConsoleFragment.C
 
         @Override
         public void onPeerUpdatedDiscoveryInfo(Peer peer) {
-            Log.d(TAG, "onPeerUpdatedDiscoveryInfo()");
-
-            String s = new String();
-
-            byte[] discInfo = peer.getDiscoveryInfo();
-            if (discInfo != null) {
-                s = Arrays.toString(discInfo);
-            }
-
-            Log.d(TAG, "discInfo before handlePeerUpdatedDiscoveryInfo()" + s);
-
-            Logger.v("P2PListener", "Peer updated discovery info: " + peer.getNodeId() + ". Peer info: " + s);
+            Logger.v("P2PListener", "Peer updated discovery info: " + peer.getNodeId());
 
             handlePeerUpdatedDiscoveryInfo(peer);
-
-            discInfo = peer.getDiscoveryInfo();
-            if (discInfo != null) {
-                s = Arrays.toString(discInfo);
-            }
-            Log.d(TAG, "discInfo after handlePeerUpdatedDiscoveryInfo()" + s);
-
-
         }
 
         @Override
@@ -344,11 +316,10 @@ public class MainActivity extends AppCompatActivity implements ConsoleFragment.C
     }
 
     private void setupPeers(final UUID ownNodeId) {
-        Log.d(TAG, "setupPeers()");
+
         byte[] ownDiscoveryData = loadOwnDiscoveryData();
         int ownColor = ColorStorage.getColorCode(ownDiscoveryData, ColorStorage.createRandomColor());
         if (ownDiscoveryData == null) {
-            Log.d(TAG, "ownDiscoveryData == null");
             storage.saveColor(ownColor);
             updateOwnDiscoveryInfo();
         }
@@ -384,7 +355,7 @@ public class MainActivity extends AppCompatActivity implements ConsoleFragment.C
     }
 
     private void handlePeerUpdatedDiscoveryInfo(final Peer peer) {
-        Log.d(TAG, "handlePeerUpdatedDiscoveryInfo()");
+
         UUID peerId = peer.getNodeId();
         byte[] peerDiscoveryInfo = peer.getDiscoveryInfo();
 
@@ -406,7 +377,6 @@ public class MainActivity extends AppCompatActivity implements ConsoleFragment.C
     }
 
     private void updateOwnDiscoveryInfo() {
-        Log.d(TAG, "updateOwnDiscoveryInfo()");
 
         P2PKitClient client = P2PKitClient.getInstance(MainActivity.this);
         if (!client.isEnabled()) {
@@ -425,7 +395,6 @@ public class MainActivity extends AppCompatActivity implements ConsoleFragment.C
     }
 
     private byte[] loadOwnDiscoveryData() {
-        Log.d(TAG, "loadOwnDiscoveryData()");
         return storage.loadColor();
     }
 
@@ -436,7 +405,7 @@ public class MainActivity extends AppCompatActivity implements ConsoleFragment.C
     }
 
     private void showColorPicker() {
-        Log.d(TAG, "showColorPicker()");
+
         byte[] colorData = storage.loadColor();
         int colorCode = ColorStorage.getColorCode(colorData, defaultColor);
 
